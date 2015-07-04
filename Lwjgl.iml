@@ -16,9 +16,9 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="TEST" name="Gradle: junit-4.11" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: hamcrest-core-1.3" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: lwjgl" level="project" />
     <orderEntry type="library" exported="" name="Gradle: LeapJava" level="project" />
     <orderEntry type="library" exported="" name="Gradle: jbox2d-library-2.2.1.1" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: lwjgl-3.0.0a" level="project" />
   </component>
 </module>
 
