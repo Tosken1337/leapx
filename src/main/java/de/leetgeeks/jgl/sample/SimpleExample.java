@@ -44,7 +44,7 @@ public class SimpleExample implements ApplicationCallback {
         modelMatrix = new Matrix4f();
         modelMatrix.identity();
 
-        //leapController = new Controller();
+        leapController = new Controller();
 
         physxSimulation = PhysxSimulation.createWithWorld(new Vec2(0f, -10f));
         ballWithPayload = physxSimulation.createBallWithPayload(1f, new Vec2(0, 50), modelMatrix);
@@ -76,9 +76,9 @@ public class SimpleExample implements ApplicationCallback {
 
     @Override
     public void onFrame(double elapsedMillis) {
-        //processLeapInput();
+        processLeapInput();
         physxSimulation.simulate();
-        System.out.println(ballWithPayload);
+        //System.out.println(ballWithPayload);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -127,7 +127,7 @@ public class SimpleExample implements ApplicationCallback {
 
             normalizedPoint = normalizedPoint.plus(new Vector(-0.5f, -0.5f, -0.5f));
             normalizedPoint = normalizedPoint.times(4);
-            //System.out.println("Normalized point: " + normalizedPoint);
+            System.out.println("Normalized point: " + normalizedPoint);
 
             modelMatrix.identity();
             modelMatrix.translate(normalizedPoint.getX(), normalizedPoint.getY(), normalizedPoint.getZ());
