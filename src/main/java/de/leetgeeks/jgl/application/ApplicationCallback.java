@@ -12,4 +12,6 @@ public interface ApplicationCallback {
     void onRelease();
     void onFrame(double elapsedMillis);
     void onResize(int width, int height);
+
+    void onKey(int key, int scancode, int action, int mods);
 }

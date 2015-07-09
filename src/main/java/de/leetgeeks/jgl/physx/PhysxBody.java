@@ -1,5 +1,6 @@
 package de.leetgeeks.jgl.physx;
 
+import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 
 /**
@@ -21,7 +22,11 @@ public class PhysxBody<T> {
         this.payload = payload;
     }
 
-    Body getBody() {
+    public Vec2 getPosition() {
+        return body.getPosition();
+    }
+
+    public Body getBody() {
         return body;
     }
 

@@ -21,3 +21,15 @@ dependencies {
     compile group: 'org.jbox2d', name: 'jbox2d-library', version: '2.2.1.1'
     compile files('libs/leapmotion/LeapJava.jar')
 }
+
+def manifestClasspath = configurations.compile.collect { it.getName() }.join(' ')
+jar {
+    manifest {
+        attributes(
+                "Implementation-Title": "LeapX",
+                "Implementation-Version": version,
+                "Main-Class": "de.leetgeeks.jgl.sample.SimpleExample",
+                "classpath": manifestClasspath
+                )
+    }
+}

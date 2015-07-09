@@ -66,10 +66,6 @@ public final class WinBaseApplication {
             // Build time difference between this and first time.
             long thisTime = System.nanoTime();
             double elapsedMillis = (thisTime - firstTime) / 1E6;
-            firstTime = thisTime;
-
-            // Make the viewport always fill the whole window.
-            //glViewport(0, 0, width, height);
 
             if (resized) {
                 callback.onResize(width, height);
@@ -106,6 +102,7 @@ public final class WinBaseApplication {
                                int scancode, int action, int mods) {
                 if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
                     glfwSetWindowShouldClose(window, GL_TRUE);
+                callback.onKey(key, scancode, action, mods);
             }
         });
         glfwSetFramebufferSizeCallback(windowHandle,
@@ -130,7 +127,7 @@ public final class WinBaseApplication {
         callback.onInitNonGl();
 
         glfwMakeContextCurrent(windowHandle);
-        glfwSwapInterval(0);
+        glfwSwapInterval(1);
 
         glfwShowWindow(windowHandle);
     }

@@ -1,6 +1,8 @@
 package de.leetgeeks.jgl.physx;
 
 import org.jbox2d.collision.shapes.CircleShape;
+import org.jbox2d.collision.shapes.MassData;
+import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
 
@@ -27,8 +29,36 @@ public class PhysxSimulation {
         return simulator;
     }
 
+    public <T> PhysxBody<T> createRectangle(float width, float height, Vec2 position, T payload, boolean dynamic) {
+        return createRectangle(width, height, position, payload, dynamic, 0.3f, 0);
+    }
 
-    public <T> PhysxBody<T> createBallWithPayload(float radius, Vec2 position, T payload) {
+
+    public <T> PhysxBody<T> createRectangle(float width, float height, Vec2 position, T payload, boolean dynamic, float density, float restitution) {
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = dynamic ? BodyType.DYNAMIC : BodyType.STATIC;
+        bodyDef.position.set(position);
+
+        final PolygonShape shape = new PolygonShape();
+        shape.setAsBox(width / 2, height / 2);
+
+        Body body = world.createBody(bodyDef);
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        fixtureDef.density = density;
+        fixtureDef.restitution = restitution;
+        fixtureDef.friction = 0.3f;
+        final Fixture fixture = body.createFixture(fixtureDef);
+
+        // Create wrapper body
+        PhysxBody<T> result = new PhysxBody<>();
+        result.setBody(body);
+        result.setPayload(payload);
+
+        return result;
+    }
+
+    public <T> PhysxBody<T> createCircle(float radius, Vec2 position, T payload) {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyType.DYNAMIC;
         bodyDef.position.set(position);
@@ -41,6 +71,9 @@ public class PhysxSimulation {
         fixtureDef.density = 1;
         fixtureDef.friction = 0.3f;
         final Fixture fixture = body.createFixture(fixtureDef);
+        final MassData m = new MassData();
+        m.I = 1;
+        body.setMassData(m);
 
         // Create wrapper body
         PhysxBody<T> result = new PhysxBody<>();

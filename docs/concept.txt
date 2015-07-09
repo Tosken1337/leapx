@@ -1,0 +1,5 @@
+- Ein zufälliges Objekt wird aktiv (ändert Farbe) und der Spieler hat x sekunden zeit, um mit ihm zu kollidieren.
+- Das aktive Objekt wechselt immer schneller
+- Der Spieler darf keine anderen außer das aktive Objekt berühren.
+- Getroffene Objekte werden aus dem SPiel genommen.
+- Es entstehen zufällig neue Objekte
