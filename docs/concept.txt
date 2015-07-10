@@ -1,5 +1,9 @@
-- Ein zuf‰lliges Objekt wird aktiv (‰ndert Farbe) und der Spieler hat x sekunden zeit, um mit ihm zu kollidieren.
+- Ein zuf√§lliges Objekt wird aktiv (√§ndert Farbe) und der Spieler hat x sekunden zeit, um mit ihm zu kollidieren.
 - Das aktive Objekt wechselt immer schneller
-- Der Spieler darf keine anderen auﬂer das aktive Objekt ber¸hren.
+- Der Spieler darf keine anderen au√üer das aktive Objekt ber√ºhren.
 - Getroffene Objekte werden aus dem SPiel genommen.
-- Es entstehen zuf‰llig neue Objekte
+- Es entstehen zuf√§llig neue Objekte
+
+PhysX Optionen:
+- √Ñndern von Masse-Daten um bestimmte Effekte zu erzielen
+- Zuf√§llig Objekte mit einem linearen Impuls in Bewegung versetzen (Das aktive Objekt muss verfolgt werden)
