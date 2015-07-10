@@ -7,3 +7,6 @@
 PhysX Optionen:
 - Ändern von Masse-Daten um bestimmte Effekte zu erzielen
 - Zufällig Objekte mit einem linearen Impuls in Bewegung versetzen (Das aktive Objekt muss verfolgt werden)
+
+-> Joints benutzen um kraft von leap-input zu verarbeiten.
+Eine art feder ?!
