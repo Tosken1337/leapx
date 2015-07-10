@@ -17,6 +17,8 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.3'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.3'
     compile group: 'org.lwjgl', name: 'lwjgl', version: '3.0.0a'
     compile group: 'org.jbox2d', name: 'jbox2d-library', version: '2.2.1.1'
     compile files('libs/leapmotion/LeapJava.jar')
