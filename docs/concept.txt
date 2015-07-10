@@ -11,5 +11,5 @@ PhysX Optionen:
 -> Joints benutzen um kraft von leap-input zu verarbeiten.
 Eine art feder ?!
 
-- Mouse joint erlaubt es ein Körper zur angegebenen Position zu beschleunigen
+- Mouse joint / Motor joint erlaubt es ein Körper zur angegebenen Position zu beschleunigen
 - Kinematic body?!
