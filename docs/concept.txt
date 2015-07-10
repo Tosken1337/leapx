@@ -13,3 +13,9 @@ Eine art feder ?!
 
 - Mouse joint / Motor joint erlaubt es ein Körper zur angegebenen Position zu beschleunigen
 - Kinematic body?!
+
+
+
+GFX:
+--------------------------------------------
+Post processing shader (Film grain sepia, ...)
