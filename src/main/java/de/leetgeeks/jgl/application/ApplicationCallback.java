@@ -14,4 +14,7 @@ public interface ApplicationCallback {
     void onResize(int width, int height);
 
     void onKey(int key, int scancode, int action, int mods);
+
+    void onMouseMove(double x, double y);
+    void onMouseButton(int button, int action, int mods);
 }

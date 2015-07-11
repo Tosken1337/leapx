@@ -1,4 +1,4 @@
-package de.leetgeeks.jgl.sample;
+package de.leetgeeks.jgl.leapx;
 
 import com.leapmotion.leap.*;
 import de.leetgeeks.jgl.application.ApplicationCallback;
@@ -9,6 +9,8 @@ import de.leetgeeks.jgl.gl.shader.ShaderProgram;
 import de.leetgeeks.jgl.physx.PhysxBody;
 import de.leetgeeks.jgl.physx.PhysxSimulation;
 import de.leetgeeks.jgl.util.ResourceUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jbox2d.common.Vec2;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
@@ -28,7 +30,9 @@ import static org.lwjgl.opengl.GL11.*;
  * Date: 27.06.2015
  * Time: 17:05
  */
-public class SimpleExample implements ApplicationCallback {
+public class MainApplication implements ApplicationCallback {
+    private static final Logger log = LogManager.getLogger();
+
     public static final int WIDTH = 1920;
     public static final int HEIGHT = 1080;
     private ShaderProgram shader;
@@ -37,8 +41,6 @@ public class SimpleExample implements ApplicationCallback {
 
     private Controller leapController;
     private Frame lastLeapFrame;
-
-    //private Matrix4f modelMatrix;
 
     private PhysxBody<Matrix4f> playerBox;
     private List<PhysxBody<Matrix4f>> obstacles = new ArrayList<>();
@@ -49,12 +51,16 @@ public class SimpleExample implements ApplicationCallback {
         final float halfWidth = 25f;
         final float halfHeight = halfWidth * (((float) HEIGHT) / WIDTH);
         camera = new OrthoCamera(-halfWidth, halfWidth, halfHeight, -halfHeight, 0f, 10f);
-        /*modelMatrix = new Matrix4f();
-        modelMatrix.identity();*/
 
         leapController = new Controller();
 
         physxSimulation = PhysxSimulation.createWithWorld(new Vec2(0f, 0f));
+        physxSimulation.setCollisionListener((bodyA, bodyB) -> {
+            final boolean isPlayer = bodyA.equals(playerBox) || bodyB.equals(playerBox);
+            if (isPlayer) {
+                log.trace("Player collition");
+            }
+        });
         playerBox = physxSimulation.createRectangle(1f, 1f, new Vec2(0, 0), new Matrix4f(), true);
 
         final Random r = new Random();
@@ -65,7 +71,7 @@ public class SimpleExample implements ApplicationCallback {
             float x = r.nextFloat() * (2 * horizontalBound) - horizontalBound;
             float y = r.nextFloat() * (2 * verticalBound) - verticalBound;
 
-            System.out.println("Creating obstacle at position x: " + x + ", y: " + y);
+            //log.trace("Creating obstacle at position x: " + x + ", y: " + y);
 
             final PhysxBody<Matrix4f> obstacle = physxSimulation.createRectangle(1f, 1f, new Vec2(x, y), new Matrix4f(), true);
             obstacles.add(obstacle);
@@ -80,8 +86,6 @@ public class SimpleExample implements ApplicationCallback {
 
     @Override
     public void onInitGl() {
-        System.out.println("onInit");
-
         try {
             String vertexShaderSource = ResourceUtil.getResourceFileAsString("/shader/vert.glsl", this.getClass());
             String fragmenShaderSource = ResourceUtil.getResourceFileAsString("/shader/frag.glsl", this.getClass());
@@ -99,7 +103,6 @@ public class SimpleExample implements ApplicationCallback {
 
     @Override
     public void onRelease() {
-        System.out.println("onRelease");
     }
 
     @Override
@@ -147,7 +150,7 @@ public class SimpleExample implements ApplicationCallback {
 
     @Override
     public void onResize(int width, int height) {
-        System.out.println("onResize : " + width + "x" + height);
+        log.trace("onResize : " + width + "x" + height);
         final float halfWidth = 25;
         final float halfHeight = halfWidth * ((float)height / width);
         camera = new OrthoCamera(-halfWidth, halfWidth, halfHeight, -halfHeight, 0f, 10f);
@@ -158,6 +161,25 @@ public class SimpleExample implements ApplicationCallback {
     public void onKey(int key, int scancode, int action, int mods) {
         if (key == GLFW.GLFW_KEY_RIGHT) {
             playerBox.getBody().applyLinearImpulse(new Vec2(2, 0), playerBox.getPosition());
+        }
+    }
+
+    @Override
+    public void onMouseMove(double x, double y) {
+        //log.trace("x: {}, y: {}", x, y);
+    }
+
+    @Override
+    public void onMouseButton(int button, int action, int mods) {
+        //log.trace("Button: {}, Action: {}, Mods: {}", button, action, mods);
+        switch (button) {
+            case GLFW.GLFW_MOUSE_BUTTON_1:
+                if (action == 1) {
+                    log.trace("Button 1 pushed");
+                } else {
+                    log.trace("Button 1 released");
+                }
+                break;
         }
     }
 
@@ -179,38 +201,64 @@ public class SimpleExample implements ApplicationCallback {
             InteractionBox iBox = frame.interactionBox();
             Pointable pointable = frame.pointables().frontmost();
 
-            Vector leapPoint = pointable.stabilizedTipPosition();
-            Vector normalizedPoint = iBox.normalizePoint(leapPoint, true);
 
-            normalizedPoint = normalizedPoint.plus(new Vector(-0.5f, -0.5f, -0.5f));
-            normalizedPoint = normalizedPoint.times(10);
+            if (pointable.isFinger()) {
+                Vector leapPoint = pointable.stabilizedTipPosition();
+                Vector normalizedPoint = iBox.normalizePoint(leapPoint, true);
 
-            if (lastPenPosition == null || lastPenPosition.getY() == -5f) {
+                //log.trace("Normalized point: {}, pointable: {}", normalizedPoint, pointable);
+
+                normalizedPoint = normalizedPoint.plus(new Vector(-0.5f, -0.5f, -0.5f));
+                normalizedPoint = normalizedPoint.times(10);
+
+                if (lastPenPosition == null || lastPenPosition.getY() == -5f) {
+                    lastPenPosition = normalizedPoint;
+                }
+
+                Vector diff = normalizedPoint.minus(lastPenPosition).times(1);
+
+
                 lastPenPosition = normalizedPoint;
+
+                //box.getBody().applyForceToCenter(new Vec2(normalizedPoint.getX(), normalizedPoint.getY()));
+                //box.getBody().applyForceToCenter(new Vec2(diff.getX(), diff.getY()));
+
+                playerBox.getBody().applyLinearImpulse(new Vec2(diff.getX(), diff.getY()), playerBox.getPosition());
+
+/*                normalizedPoint = normalizedPoint.plus(new Vector(-0.5f, -0.5f, -0.5f));
+                normalizedPoint = normalizedPoint.times(30);*/
+
+                //log.trace("Normalized point: {}, pointable: {}", normalizedPoint, pointable);
+
+                /*MouseJointDef mouseJointDef = null;
+                if (joint == null) {
+                    mouseJointDef = new MouseJointDef();
+                    mouseJointDef.bodyA = obstacles.get(0).getBody();
+                    mouseJointDef.bodyB = playerBox.getBody();
+                    mouseJointDef.target.set(-25, 0);
+                    mouseJointDef.maxForce = playerBox.getBody().getMass() * 10;
+                    mouseJointDef.collideConnected = true;
+                    mouseJointDef.dampingRatio = 0.4f;
+                    mouseJointDef.frequencyHz = 100;
+                    joint = ((MouseJoint) physxSimulation.createJoint(mouseJointDef));
+                    playerBox.getBody().setAwake(true);
+                } else {
+                    //joint.setTarget(new Vec2(25, 0));
+                    joint.setTarget(new Vec2(normalizedPoint.getX(), normalizedPoint.getY()));
+                }*/
+
+
+
+
+                lastLeapFrame = frame;
             }
-
-            Vector diff = normalizedPoint.minus(lastPenPosition).times(1);
-
-            lastPenPosition = normalizedPoint;
-
-            //System.out.println("Normalized point: " + normalizedPoint);
-            //System.out.println("Dif: " + diff);
-
-            //box.getBody().applyForceToCenter(new Vec2(normalizedPoint.getX(), normalizedPoint.getY()));
-            //box.getBody().applyForceToCenter(new Vec2(diff.getX(), diff.getY()));
-            playerBox.getBody().applyLinearImpulse(new Vec2(diff.getX(), diff.getY()), playerBox.getPosition());
-
-            //modelMatrix.identity();
-            //modelMatrix.translate(normalizedPoint.getX(), normalizedPoint.getY(), normalizedPoint.getZ());
-
-            lastLeapFrame = frame;
         }
     }
 
     private Vector lastPenPosition;
 
     public static void main(String[] args) {
-        final SimpleExample sampleApp = new SimpleExample();
+        final MainApplication sampleApp = new MainApplication();
         final WinBaseApplication app = new WinBaseApplication.ApplicationBuilder(sampleApp)
                 .width(WIDTH)
                 .height(HEIGHT)

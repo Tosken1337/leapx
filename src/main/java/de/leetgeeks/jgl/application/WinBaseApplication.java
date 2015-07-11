@@ -1,9 +1,6 @@
 package de.leetgeeks.jgl.application;
 
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
-import org.lwjgl.glfw.GLFWKeyCallback;
-import org.lwjgl.glfw.GLFWvidmode;
+import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.system.MemoryUtil;
 
@@ -28,6 +25,8 @@ public final class WinBaseApplication {
 
     private static GLFWErrorCallback errorCallback;
     private static GLFWKeyCallback keyCallback;
+    private static GLFWMouseButtonCallback mouseButtonCallback;
+    private static GLFWCursorPosCallback cursorPosCallback;
     private static GLFWFramebufferSizeCallback fbCallback;
 
     private static long windowHandle;
@@ -105,6 +104,21 @@ public final class WinBaseApplication {
                 callback.onKey(key, scancode, action, mods);
             }
         });
+
+        glfwSetMouseButtonCallback(windowHandle, WinBaseApplication.mouseButtonCallback = new GLFWMouseButtonCallback() {
+            @Override
+            public void invoke(long window, int button, int action, int mods) {
+                callback.onMouseButton(button, action, mods);
+            }
+        });
+
+        glfwSetCursorPosCallback(windowHandle, WinBaseApplication.cursorPosCallback = new GLFWCursorPosCallback() {
+            @Override
+            public void invoke(long window, double xpos, double ypos) {
+                callback.onMouseMove(xpos, ypos);
+            }
+        });
+
         glfwSetFramebufferSizeCallback(windowHandle,
                 WinBaseApplication.fbCallback = new GLFWFramebufferSizeCallback() {
                     @Override
