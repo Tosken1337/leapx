@@ -1,5 +1,6 @@
 package de.leetgeeks.jgl.gl.shader;
 
+import de.leetgeeks.jgl.gl.GLHelper;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL32;
@@ -36,14 +37,9 @@ public final class ShaderProgram {
 
         glAttachShader(program.id, vertShaderId);
         glAttachShader(program.id, fragShaderId);
-
         glLinkProgram(program.id);
 
-        int status = GL20.glGetShaderi(program.id, GL20.GL_LINK_STATUS);
-        if (status == GL11.GL_FALSE){
-            String error=GL20.glGetProgramInfoLog(program.id);
-            System.err.println( "Linker failure: %s\n"+error);
-        }
+        GLHelper.checkAndThrow();
 
         return program;
     }
@@ -55,6 +51,11 @@ public final class ShaderProgram {
     public void setUniformMatrixF(final String uniformName, FloatBuffer matrix) {
         int location = uniformLocations.computeIfAbsent(uniformName, s -> glGetUniformLocation(id, s));
         glUniformMatrix4fv(location, false, matrix);
+    }
+
+    public void setUniformTextureUnit(final String uniformName, int unit) {
+        int location = uniformLocations.computeIfAbsent(uniformName, s -> glGetUniformLocation(id, s));
+        glUniform1i(location, unit);
     }
 
     private static int createShader(int shaderType, String shaderSource) {

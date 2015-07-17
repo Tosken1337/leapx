@@ -18,4 +18,8 @@ public class ResourceUtil {
         return Files.readAllLines(f.toPath()).stream()
                 .collect(Collectors.joining("\n"));
     }
+
+    public static File getResourceFile(String resource, Class c) throws Exception {
+        return new File(c.getResource(resource).toURI());
+    }
 }

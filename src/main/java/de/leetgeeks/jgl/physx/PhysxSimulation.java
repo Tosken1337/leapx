@@ -12,10 +12,6 @@ import org.jbox2d.dynamics.contacts.Contact;
 import org.jbox2d.dynamics.joints.Joint;
 import org.jbox2d.dynamics.joints.JointDef;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 /**
  * Lwjgl
  * User: Sebastian
@@ -25,23 +21,18 @@ import java.util.Optional;
 public class PhysxSimulation {
     public interface CollisionListener {
 
-        void onCollision(PhysxBody<?> bodyA, PhysxBody<?> bodyB);
+        void onCollision(Fixture bodyA, Fixture bodyB);
     }
 
     private static Logger log = LogManager.getLogger(PhysxSimulation.class);
 
     private static float TIMESTEP = 1.0f/60.0f;
-    private static int VELOCITY_ITERATIONS = 6;
-    private static int POSITION_ITERATIONS = 2;
+    private static int VELOCITY_ITERATIONS = 8;
+    private static int POSITION_ITERATIONS = 3;
 
     private World world;
 
     private CollisionListener collisionListener;
-
-    /**
-     * Contains all bodies
-     */
-    private List<PhysxBody<?>> bodies = new ArrayList<>();
 
     private PhysxSimulation() {
 
@@ -55,10 +46,7 @@ public class PhysxSimulation {
             @Override
             public void beginContact(Contact contact) {
                 if (simulator.collisionListener != null) {
-                    Optional<PhysxBody<?>> bodyA = simulator.getBodyForFixture(contact.getFixtureA());
-                    Optional<PhysxBody<?>> bodyB = simulator.getBodyForFixture(contact.getFixtureB());
-
-                    simulator.collisionListener.onCollision(bodyA.get(), bodyB.get());
+                    simulator.collisionListener.onCollision(contact.getFixtureA(), contact.getFixtureB());
                 }
             }
 
@@ -87,16 +75,17 @@ public class PhysxSimulation {
     }
 
     public <T> PhysxBody<T> createRectangle(float width, float height, Vec2 position, T payload, boolean dynamic) {
-        PhysxBody<T> body = createRectangle(width, height, position, payload, dynamic, 0.3f, 0);
-        bodies.add(body);
+        PhysxBody<T> body = createRectangle(width, height, position, payload, dynamic, 0.3f, 0, 0.3f);
         return body;
     }
 
 
-    private <T> PhysxBody<T> createRectangle(float width, float height, Vec2 position, T payload, boolean dynamic, float density, float restitution) {
+    public <T> PhysxBody<T> createRectangle(float width, float height, Vec2 position, T payload, boolean dynamic, float density, float restitution, float friction) {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = dynamic ? BodyType.DYNAMIC : BodyType.STATIC;
         bodyDef.position.set(position);
+        bodyDef.fixedRotation = false;
+        bodyDef.angularDamping = 0.1f;
 
         final PolygonShape shape = new PolygonShape();
         shape.setAsBox(width / 2, height / 2);
@@ -106,7 +95,7 @@ public class PhysxSimulation {
         fixtureDef.shape = shape;
         fixtureDef.density = density;
         fixtureDef.restitution = restitution;
-        fixtureDef.friction = 0.3f;
+        fixtureDef.friction = friction;
         final Fixture fixture = body.createFixture(fixtureDef);
 
         // Create wrapper body
@@ -115,12 +104,6 @@ public class PhysxSimulation {
         result.setPayload(payload);
 
         return result;
-    }
-
-    private Optional<PhysxBody<?>> getBodyForFixture(final Fixture fixture) {
-        return bodies.stream()
-                .filter(physxBody -> physxBody.getBody().getFixtureList().equals(fixture))
-                .findFirst();
     }
 
     /*public <T> PhysxBody<T> createCircle(float radius, Vec2 position, T payload) {

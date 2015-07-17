@@ -18,7 +18,7 @@ public class PhysxBody<T> {
         return payload;
     }
 
-    public void setPayload(T payload) {
+    void setPayload(T payload) {
         this.payload = payload;
     }
 
