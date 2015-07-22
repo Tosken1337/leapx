@@ -74,6 +74,10 @@ public class PhysxSimulation {
         return world.createJoint(def);
     }
 
+    public <T> void destroyBody(PhysxBody<T> body) {
+        world.destroyBody(body.getBody());
+    }
+
     public <T> PhysxBody<T> createRectangle(float width, float height, Vec2 position, T payload, boolean dynamic) {
         PhysxBody<T> body = createRectangle(width, height, position, payload, dynamic, 0.3f, 0, 0.3f);
         return body;

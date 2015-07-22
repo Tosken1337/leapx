@@ -2,6 +2,7 @@ package de.leetgeeks.jgl.leapx.game.level;
 
 import de.leetgeeks.jgl.leapx.game.mechanic.RuleStateProcessor;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
+import de.leetgeeks.jgl.leapx.game.object.GameObject;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.leapx.game.object.Player;
 import de.leetgeeks.jgl.physx.PhysxBody;
@@ -10,10 +11,12 @@ import de.leetgeeks.jgl.util.Timer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jbox2d.common.Vec2;
+import org.jbox2d.dynamics.Fixture;
 import org.joml.Vector2f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -53,6 +56,8 @@ public class Level {
         obstacles = spawnObstacles(arena, obstacleSize, 10);
         player = spawnPlayer(arena);
         initRuleProcessor(arena);
+
+        physxSimulator.setCollisionListener(new CollisionListener());
 
         // Perform one time step to resolve collisions
         simulatePhysx(0);
@@ -132,12 +137,21 @@ public class Level {
      * Current player collides with obstacles.
      * @param obstacle  The obstacle which has collided with the player.
      */
-    public void onPlayerObstacleCollision(Obstacle obstacle) {
+    public void onPlayerObstacleCollision(final Obstacle obstacle) {
         log.debug("Player collides with obstacle {}", obstacle);
+        final Optional<PhysxBody<Obstacle>> obstacleBody = obstacles.stream()
+                .filter(obstaclePhysxBody -> obstaclePhysxBody.getPayload().equals(obstacle))
+                .findFirst();
+        destroyObstacle(obstacleBody.get());
     }
 
-    private void destroyObstacle(final Obstacle obstacle) {
-
+    /**
+     * @TODO should be threadsafe.
+     * @param obstacle
+     */
+    private void destroyObstacle(final PhysxBody<Obstacle> obstacle) {
+        physxSimulator.destroyBody(obstacle);
+        obstacles.remove(obstacle);
     }
 
     private void initRuleProcessor(GameArena arena) {
@@ -218,5 +232,42 @@ public class Level {
                 player,
                 true,
                 0.3f, 0f, 0.3f);
+    }
+
+    private Optional<GameObject> getObjectFromFixture(final Fixture fixture) {
+        Optional<PhysxBody<? extends GameObject>> matchingGameObject =
+                Stream.concat(obstacles.stream(), Stream.of(player))
+                        .filter(physxBody -> physxBody.getBody().getFixtureList().equals(fixture))
+                        .findFirst();
+
+        if (matchingGameObject.isPresent()) {
+            return Optional.of(matchingGameObject.get().getPayload());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     *
+     */
+    private class CollisionListener implements PhysxSimulation.CollisionListener {
+
+        @Override
+        public void onCollision(Fixture fixtureA, Fixture fixtureB) {
+            final Optional<GameObject> objectA = getObjectFromFixture(fixtureA);
+            final Optional<GameObject> objectB = getObjectFromFixture(fixtureB);
+            if (objectA.isPresent() && objectB.isPresent() && (isPlayer(objectA.get()) || isPlayer(objectB.get()))) {
+                GameObject obstacle = isObstacle(objectA.get()) ? objectA.get() : objectB.get();
+                Level.this.onPlayerObstacleCollision((Obstacle) obstacle);
+            }
+        }
+
+        private boolean isPlayer(final GameObject object) {
+            return object instanceof Player;
+        }
+
+        private boolean isObstacle(final GameObject object) {
+            return object instanceof Obstacle;
+        }
     }
 }

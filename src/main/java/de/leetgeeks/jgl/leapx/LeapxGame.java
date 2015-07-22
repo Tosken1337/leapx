@@ -2,7 +2,6 @@ package de.leetgeeks.jgl.leapx;
 
 import de.leetgeeks.jgl.leapx.game.level.Level;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
-import de.leetgeeks.jgl.leapx.game.object.GameObject;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.leapx.game.object.Player;
 import de.leetgeeks.jgl.leapx.input.leap.LeapInput;
@@ -13,13 +12,10 @@ import de.leetgeeks.jgl.physx.PhysxSimulation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jbox2d.common.Vec2;
-import org.jbox2d.dynamics.Fixture;
 import org.joml.Vector2f;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Lwjgl
@@ -76,7 +72,6 @@ public class LeapxGame {
 
         // Initialize physx world with zero gravity
         physxSimulator = PhysxSimulation.createWithWorld(new Vec2(0, 0));
-        physxSimulator.setCollisionListener(new CollisionListener());
 
         obstacleBodys = new ArrayList<>();
 
@@ -169,7 +164,7 @@ public class LeapxGame {
         }
     }
 
-    private Optional<Player> getPlayerFromFixture(final Fixture fixture) {
+/*    private Optional<Player> getPlayerFromFixture(final Fixture fixture) {
         if (player.getBody().getFixtureList().equals(fixture)) {
             return Optional.of(player.getPayload());
         } else {
@@ -199,9 +194,9 @@ public class LeapxGame {
         }
     }
 
-    /**
+    *//**
      *
-     */
+     *//*
     private class CollisionListener implements PhysxSimulation.CollisionListener {
 
         @Override
@@ -223,5 +218,5 @@ public class LeapxGame {
         }
 
 
-    }
+    }*/
 }
