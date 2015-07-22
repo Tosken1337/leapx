@@ -1,4 +1,4 @@
-package de.leetgeeks.jgl.leapx.object;
+package de.leetgeeks.jgl.leapx.game.object;
 
 import org.joml.Vector2f;
 

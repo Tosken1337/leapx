@@ -1,10 +1,11 @@
 package de.leetgeeks.jgl.leapx;
 
+import de.leetgeeks.jgl.leapx.game.level.Level;
+import de.leetgeeks.jgl.leapx.game.object.GameArena;
+import de.leetgeeks.jgl.leapx.game.object.GameObject;
+import de.leetgeeks.jgl.leapx.game.object.Obstacle;
+import de.leetgeeks.jgl.leapx.game.object.Player;
 import de.leetgeeks.jgl.leapx.input.leap.LeapInput;
-import de.leetgeeks.jgl.leapx.object.GameArena;
-import de.leetgeeks.jgl.leapx.object.Level;
-import de.leetgeeks.jgl.leapx.object.Obstacle;
-import de.leetgeeks.jgl.leapx.object.Player;
 import de.leetgeeks.jgl.leapx.rendering.Renderer;
 import de.leetgeeks.jgl.math.MathHelper;
 import de.leetgeeks.jgl.physx.PhysxBody;
@@ -17,6 +18,7 @@ import org.joml.Vector2f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -86,8 +88,6 @@ public class LeapxGame {
 
         // Init level (at the moment we will have obe level which can be loaded)
         initLevel();
-
-        initPlayer();
     }
 
     public void initGlResources() {
@@ -121,40 +121,13 @@ public class LeapxGame {
      */
     private void initLevel() {
         //@ TODO load level settings (num obstacles, difficulty setinngs, ...) from xml file
-        gameLevel = new Level();
+        gameLevel = new Level(physxSimulator);
+        gameLevel.init(arena, 1.5f);
 
-        // Spawn obstacles at random position within the game arena
-        final List<Obstacle> obstacles = gameLevel.spawnObstacles(arena, 2);
-
-        // Create physx object for each obstacle
-        final float density = 0.3f;
-        final float restitution = 0f;
-        final float friction = 0.3f;
-        obstacles.forEach(obstacle -> {
-            final Vector2f centerPosPhysx = obstacle.getCenterPosition();
-            final PhysxBody<Obstacle> obstacleBody = physxSimulator.createRectangle(
-                    obstacle.getWidth(), obstacle.getHeight(),
-                    new Vec2(centerPosPhysx.x, centerPosPhysx.y),
-                    obstacle,
-                    true,
-                    density, restitution, friction);
-
-            obstacleBodys.add(obstacleBody);
-        });
-    }
-
-    /**
-     *
-     */
-    private void initPlayer() {
-        final Player player = new Player(new Vector2f(0, 0), new Vector2f(4, 4), 0);
-        this.player = physxSimulator.createRectangle(
-                player.getWidth(),
-                player.getHeight(),
-                new Vec2(arena.getCenterPosition().x , arena.getCenterPosition().y),
-                player,
-                true,
-                0.3f, 0f, 0.3f);
+        //@TODO remove dependency for physxbodys here. We should not use them
+        // The level should be the only one handling the physx
+        this.obstacleBodys = gameLevel.getObstaclePhysx();
+        this.player = gameLevel.getPlayerPhysx();
     }
 
     /**
@@ -162,51 +135,93 @@ public class LeapxGame {
      */
     private void clearLevel() {
         gameLevel.clearLevel();
-        //@TODO destroy bodies
         obstacleBodys.clear();
     }
 
 
     public void loop(double elapsedMillis) {
         processInput(elapsedMillis);
-        simulatePhysx(elapsedMillis);
-        updateGameObjects(elapsedMillis);
+
+        gameLevel.update(elapsedMillis);
+
         drawGameObjects(elapsedMillis);
     }
 
     private void drawGameObjects(double elapsedMillis) {
-        renderer.onDraw(elapsedMillis, arena, gameLevel.getObstacles(), player.getPayload());
-    }
-
-    private void updateGameObjects(double elapsedMillis) {
-        Stream.concat(obstacleBodys.stream(), Stream.of(player)).forEach(physxBody -> {
-            Vec2 position = physxBody.getBody().getPosition();
-            float angle = physxBody.getBody().getAngle();
-            physxBody.getPayload().updateTransformation(new Vector2f(position.x, position.y), angle);
-        });
-    }
-
-    private void simulatePhysx(double elapsedMillis) {
-        physxSimulator.simulate();
+        renderer.onDraw(elapsedMillis, arena, gameLevel);
     }
 
     private void processInput(double elapsedMillis) {
         leap.process();
 
-        Vector2f pointableLocationDelta = leap.getPointableLocationDelta();
-        if (!pointableLocationDelta.equals(MathHelper.ZERO_VECTOR)) {
-            player.getBody().applyLinearImpulse((new Vec2(pointableLocationDelta.x * 8, pointableLocationDelta.y * 8)), player.getPosition());
+        if (leap.pointableActive()) {
+            if (!gameLevel.isRunning()) {
+                gameLevel.resume();
+            }
+
+            final Vector2f pointableLocationDelta = leap.getPointableLocationDelta();
+            if (!pointableLocationDelta.equals(MathHelper.ZERO_VECTOR)) {
+                final Vec2 force = new Vec2(pointableLocationDelta.x * 8, pointableLocationDelta.y * 8);
+                gameLevel.applyForceOnPlayer(force);
+            }
+        } else if (gameLevel.isRunning()) {
+            gameLevel.pause();
+        }
+    }
+
+    private Optional<Player> getPlayerFromFixture(final Fixture fixture) {
+        if (player.getBody().getFixtureList().equals(fixture)) {
+            return Optional.of(player.getPayload());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<Obstacle> getObstacleFromFixture(final Fixture fixture) {
+        for (PhysxBody<Obstacle> obstacleBody : obstacleBodys) {
+            if (obstacleBody.getBody().getFixtureList().equals(fixture)) {
+                return Optional.ofNullable(obstacleBody.getPayload());
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<GameObject> getObjectFromFixture(final Fixture fixture) {
+        Optional<PhysxBody<? extends GameObject>> matchingGameObject =
+                Stream.concat(obstacleBodys.stream(), Stream.of(player))
+                        .filter(physxBody -> physxBody.getBody().getFixtureList().equals(fixture))
+                        .findFirst();
+
+        if (matchingGameObject.isPresent()) {
+            return Optional.of(matchingGameObject.get().getPayload());
+        } else {
+            return Optional.empty();
         }
     }
 
     /**
      *
      */
-    private static class CollisionListener implements PhysxSimulation.CollisionListener {
+    private class CollisionListener implements PhysxSimulation.CollisionListener {
 
         @Override
-        public void onCollision(Fixture bodyA, Fixture bodyB) {
-
+        public void onCollision(Fixture fixtureA, Fixture fixtureB) {
+            final Optional<GameObject> objectA = getObjectFromFixture(fixtureA);
+            final Optional<GameObject> objectB = getObjectFromFixture(fixtureB);
+            if (objectA.isPresent() && objectB.isPresent() && (isPlayer(objectA.get()) || isPlayer(objectB.get()))) {
+                GameObject obstacle = isObstacle(objectA.get()) ? objectA.get() : objectB.get();
+                gameLevel.onPlayerObstacleCollision((Obstacle) obstacle);
+            }
         }
+
+        private boolean isPlayer(final GameObject object) {
+            return object instanceof Player;
+        }
+
+        private boolean isObstacle(final GameObject object) {
+            return object instanceof Obstacle;
+        }
+
+
     }
 }

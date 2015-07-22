@@ -33,6 +33,11 @@ public class LeapInput {
         return pointableLocationDelta;
     }
 
+    public boolean pointableActive() {
+        final Frame frame = leapDevice.frame();
+        return frame.isValid() && frame.pointables().frontmost().isFinger();
+    }
+
     public void process() {
         pointableLocationDelta.set(0, 0);
 

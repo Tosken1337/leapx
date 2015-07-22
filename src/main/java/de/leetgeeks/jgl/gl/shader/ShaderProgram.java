@@ -1,6 +1,9 @@
 package de.leetgeeks.jgl.gl.shader;
 
 import de.leetgeeks.jgl.gl.GLHelper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.joml.Vector2f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL32;
@@ -18,6 +21,7 @@ import static org.lwjgl.opengl.GL20.*;
  * Time: 20:03
  */
 public final class ShaderProgram {
+    private static final Logger log = LogManager.getLogger();
     private int id;
 
     private Map<String, Integer> uniformLocations = new HashMap<>();
@@ -25,7 +29,7 @@ public final class ShaderProgram {
     private ShaderProgram() {
     }
 
-    public static ShaderProgram buildProgramm(final String vertexShaderSource, final String fragmentShaderSource) throws Exception {
+    public static ShaderProgram buildProgram(final String vertexShaderSource, final String fragmentShaderSource) throws Exception {
         final ShaderProgram program = new ShaderProgram();
         program.id = glCreateProgram();
         if (program.id == 0) {
@@ -50,12 +54,30 @@ public final class ShaderProgram {
 
     public void setUniformMatrixF(final String uniformName, FloatBuffer matrix) {
         int location = uniformLocations.computeIfAbsent(uniformName, s -> glGetUniformLocation(id, s));
-        glUniformMatrix4fv(location, false, matrix);
+        if (location > -1) {
+            glUniformMatrix4fv(location, false, matrix);
+        }
+    }
+
+    public void setUniformF(final String uniformName, float value) {
+        int location = uniformLocations.computeIfAbsent(uniformName, s -> glGetUniformLocation(id, s));
+        if (location > -1) {
+            glUniform1f(location, value);
+        }
+    }
+
+    public void setUniformVector2f(final String uniformName, Vector2f vec) {
+        int location = uniformLocations.computeIfAbsent(uniformName, s -> glGetUniformLocation(id, s));
+        if (location > -1) {
+            glUniform2f(location, vec.x, vec.y);
+        }
     }
 
     public void setUniformTextureUnit(final String uniformName, int unit) {
         int location = uniformLocations.computeIfAbsent(uniformName, s -> glGetUniformLocation(id, s));
-        glUniform1i(location, unit);
+        if (location > -1) {
+            glUniform1i(location, unit);
+        }
     }
 
     private static int createShader(int shaderType, String shaderSource) {
@@ -74,7 +96,7 @@ public final class ShaderProgram {
                 case GL20.GL_FRAGMENT_SHADER: ShaderTypeString = "fragment"; break;
             }
 
-            System.err.println( "Compile failure in %s shader:\n%s\n"+ShaderTypeString+error);
+            log.error("Compile failure in {} shader:\n{}",ShaderTypeString, error);
         }
 
         return shaderId;

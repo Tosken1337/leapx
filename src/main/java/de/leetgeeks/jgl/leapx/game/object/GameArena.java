@@ -1,4 +1,4 @@
-package de.leetgeeks.jgl.leapx.object;
+package de.leetgeeks.jgl.leapx.game.object;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -1,4 +1,4 @@
-package de.leetgeeks.jgl.leapx.object;
+package de.leetgeeks.jgl.leapx.game.object;
 
 import org.joml.Vector2f;
 
@@ -12,5 +12,10 @@ public class Obstacle extends GameObject {
 
     public Obstacle(Vector2f centerPosition, Vector2f dimension, float angle) {
         super(centerPosition, dimension, angle);
+    }
+
+    @Override
+    public String toString() {
+        return "Obstacle at position " + this.centerPosition;
     }
 }

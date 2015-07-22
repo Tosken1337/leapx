@@ -1,4 +1,4 @@
-package de.leetgeeks.jgl.leapx.object;
+package de.leetgeeks.jgl.leapx.game.object;
 
 import org.joml.Vector2f;
 
@@ -25,10 +25,6 @@ public abstract class GameObject {
      */
     protected float angle;
 
-    /**
-     * Transformation matrix contains the necessary transformations for rendering
-     */
-    //protected Matrix4f transformationMatrix;
 
     public GameObject(Vector2f centerPosition, Vector2f dimension, float angle) {
         this.centerPosition = centerPosition;
@@ -44,14 +40,6 @@ public abstract class GameObject {
     public Vector2f getCenterPosition() {
         return centerPosition;
     }
-
-    /*public Matrix4f getTransformationMatrix() {
-        return transformationMatrix;
-    }
-
-    public void setTransformationMatrix(Matrix4f transformationMatrix) {
-        this.transformationMatrix = transformationMatrix;
-    }*/
 
     public float getAngle() {
         return angle;
