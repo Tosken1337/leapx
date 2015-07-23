@@ -66,6 +66,11 @@ public class Timer {
         return (totalElapsedTime) / 1E6;
     }
 
+    public GameDuration getTime() {
+        tick();
+        return GameDuration.of(totalElapsedTime);
+    }
+
     private void tick() {
         if (isRunning) {
             long currentTime = System.nanoTime();

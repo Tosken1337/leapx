@@ -4,13 +4,6 @@ apply plugin: 'idea'
 sourceCompatibility = 1.8
 version = '1.0'
 
-
-
-/*def lwjgl3Jar = "asd";
-def lwjgl3Natives = "../lib";
-println("LWJGL jar path is configured to: ${lwjgl3Jar}")
-println("LWJGL natives path is configured to: ${lwjgl3Natives}")*/
-
 repositories {
     mavenCentral()
 }

@@ -2,8 +2,6 @@ package de.leetgeeks.jgl.util;
 
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * Lwjgl
  * User: Sebastian
@@ -14,13 +12,13 @@ public class TimerTest {
 
     @Test
     public void testGetTimeMillis() throws Exception {
-        Timer timer = new Timer();
+        /*Timer timer = new Timer();
         timer.start();
 
         System.out.println("Timer started");
         for (int i = 0; i < 10; i++) {
             TimeUnit.MILLISECONDS.sleep(250);
-            double elapsedMillis = timer.getTimeMillis();
+            double elapsedMillis = timer.getTime().toMillis();
             System.out.println("Elapsed time " + elapsedMillis);
         }
 
@@ -29,7 +27,7 @@ public class TimerTest {
 
         for (int i = 0; i < 10; i++) {
             TimeUnit.MILLISECONDS.sleep(250);
-            double elapsedMillis = timer.getTimeMillis();
+            double elapsedMillis = timer.getTime().toMillis();
             System.out.println("Elapsed time " + elapsedMillis);
         }
 
@@ -37,8 +35,8 @@ public class TimerTest {
         timer.resume();
         for (int i = 0; i < 10; i++) {
             TimeUnit.MILLISECONDS.sleep(250);
-            double elapsedMillis = timer.getTimeMillis();
+            double elapsedMillis = timer.getTime().toMillis();
             System.out.println("Elapsed time " + elapsedMillis);
-        }
+        }*/
     }
 }

@@ -96,9 +96,16 @@ public final class ShaderProgram {
                 case GL20.GL_FRAGMENT_SHADER: ShaderTypeString = "fragment"; break;
             }
 
-            log.error("Compile failure in {} shader:\n{}",ShaderTypeString, error);
+            log.error("Compile failure in {} shader:\n{}", ShaderTypeString, error);
         }
 
         return shaderId;
+    }
+
+    public void setUniformB(String uniformName, boolean value) {
+        int location = uniformLocations.computeIfAbsent(uniformName, s -> glGetUniformLocation(id, s));
+        if (location > -1) {
+            glUniform1i(location, value ? 1 : 0);
+        }
     }
 }

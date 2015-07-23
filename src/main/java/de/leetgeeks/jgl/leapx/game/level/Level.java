@@ -1,12 +1,14 @@
 package de.leetgeeks.jgl.leapx.game.level;
 
-import de.leetgeeks.jgl.leapx.game.mechanic.RuleStateProcessor;
+import de.leetgeeks.jgl.leapx.game.mechanic.LevelStateComputer;
+import de.leetgeeks.jgl.leapx.game.mechanic.SimpleEvadeComputer;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.GameObject;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.leapx.game.object.Player;
 import de.leetgeeks.jgl.physx.PhysxBody;
 import de.leetgeeks.jgl.physx.PhysxSimulation;
+import de.leetgeeks.jgl.util.GameDuration;
 import de.leetgeeks.jgl.util.Timer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,7 +35,7 @@ public class Level {
 
     private final PhysxSimulation physxSimulator;
 
-    private final RuleStateProcessor ruleStateProcessor;
+    private final LevelStateComputer levelStateComputer;
 
     private final Timer levelTimer;
 
@@ -45,7 +47,7 @@ public class Level {
 
     public Level(PhysxSimulation physxSimulator) {
         obstacles = new ArrayList<>();
-        ruleStateProcessor = new RuleStateProcessor();
+        levelStateComputer = new SimpleEvadeComputer();
         levelTimer = new Timer();
         visualHandicap = VisualHandicap.None;
         this.physxSimulator = physxSimulator;
@@ -55,8 +57,7 @@ public class Level {
         log.info("Initialize level");
         obstacles = spawnObstacles(arena, obstacleSize, 10);
         player = spawnPlayer(arena);
-        initRuleProcessor(arena);
-
+        levelStateComputer.init(this, arena);
         physxSimulator.setCollisionListener(new CollisionListener());
 
         // Perform one time step to resolve collisions
@@ -88,10 +89,11 @@ public class Level {
     }
 
     public void update(double elapsedTime) {
+        final GameDuration levelTime = levelTimer.getTime();
         if (levelTimer.isRunning()) {
+            levelStateComputer.compute(levelTime);
             simulatePhysx(elapsedTime);
         }
-
 
         updateGameObjects(elapsedTime);
     }
@@ -133,16 +135,20 @@ public class Level {
         return levelTimer.getTimeMillis();
     }
 
+    public GameDuration getGameDuration() {
+        return levelTimer.getTime();
+    }
+
     /**
      * Current player collides with obstacles.
      * @param obstacle  The obstacle which has collided with the player.
      */
-    public void onPlayerObstacleCollision(final Obstacle obstacle) {
+    private void onPlayerObstacleCollision(final Obstacle obstacle) {
         log.debug("Player collides with obstacle {}", obstacle);
         final Optional<PhysxBody<Obstacle>> obstacleBody = obstacles.stream()
                 .filter(obstaclePhysxBody -> obstaclePhysxBody.getPayload().equals(obstacle))
                 .findFirst();
-        destroyObstacle(obstacleBody.get());
+        //destroyObstacle(obstacleBody.get());
     }
 
     /**
@@ -152,10 +158,6 @@ public class Level {
     private void destroyObstacle(final PhysxBody<Obstacle> obstacle) {
         physxSimulator.destroyBody(obstacle);
         obstacles.remove(obstacle);
-    }
-
-    private void initRuleProcessor(GameArena arena) {
-        //@TODO read rules, eg. from level setting
     }
 
     private void updateGameObjects(double elapsedMillis) {
@@ -206,16 +208,15 @@ public class Level {
 
         // Create physx object for each obstacle
         final float density = 0.3f;
-        final float restitution = 0f;
-        final float friction = 0.3f;
-        final PhysxBody<Obstacle> obstacleBody = physxSimulator.createRectangle(
+        final float restitution = 1f;
+        final float friction = 0.0f;
+
+        return physxSimulator.createRectangle(
                 obstacle.getWidth(), obstacle.getHeight(),
                 new Vec2(obstacle.getCenterPosition().x, obstacle.getCenterPosition().y),
                 obstacle,
                 true,
                 density, restitution, friction);
-
-        return obstacleBody;
     }
 
     /**

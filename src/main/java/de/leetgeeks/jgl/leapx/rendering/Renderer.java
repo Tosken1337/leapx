@@ -18,6 +18,7 @@ import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.leapx.game.object.Player;
 import de.leetgeeks.jgl.math.MathHelper;
+import de.leetgeeks.jgl.util.GameDuration;
 import de.leetgeeks.jgl.util.ResourceUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,14 +26,12 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.OpenGLException;
 
 import java.io.File;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -176,11 +175,11 @@ public class Renderer {
     }
 
 
-    public void drawArena(final GameArena arena) {
+    private void drawArena(final GameArena arena) {
 
     }
 
-    public void drawObstacles(final List<Obstacle> obstacles) {
+    private void drawObstacles(final List<Obstacle> obstacles, double elapsedMillis) {
         obstacleTexture.bind(0);
         obstacleShader.use();
 
@@ -196,6 +195,8 @@ public class Renderer {
             Matrix4f tmp = new Matrix4f(camera.getViewProjection()).mul(coordinateRootTranslation).mul(mat);
             tmp.get(matrixBuffer);
             obstacleShader.setUniformMatrixF("viewProjMatrix", matrixBuffer);
+            obstacleShader.setUniformB("isEvading", object.isEvading());
+            obstacleShader.setUniformF("time", ((float) elapsedMillis));
 
             GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 6);
         });
@@ -203,7 +204,7 @@ public class Renderer {
         obstacleTexture.unbind();
     }
 
-    public void drawPlayer(final Player player) {
+    private void drawPlayer(final Player player, double elapsedMillis) {
         playerTexture.bind(0);
         playerShader.use();
 
@@ -230,8 +231,8 @@ public class Renderer {
 
         quadVao.bind();
         drawArena(arena);
-        drawObstacles(gameLevel.getObstacles());
-        drawPlayer(gameLevel.getPlayer());
+        drawObstacles(gameLevel.getObstacles(), elapsedMillis);
+        drawPlayer(gameLevel.getPlayer(), elapsedMillis);
         quadVao.unbind();
 
         fbo.unbind();
@@ -243,11 +244,8 @@ public class Renderer {
 
         String displayString = "Pause - Put your Hand above the leap to begin";
         if (gameLevel.isRunning()) {
-            long millis = (long) gameLevel.getTime();
-            displayString = String.format("%02d:%02d:%03d",
-                    TimeUnit.MILLISECONDS.toMinutes(millis),
-                    TimeUnit.MILLISECONDS.toSeconds(millis) -
-                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)), millis - TimeUnit.MILLISECONDS.toSeconds(millis));
+            final GameDuration duration = gameLevel.getGameDuration();
+            displayString = duration.toString();
         }
         font.printOnScreen(50, 50, displayString, windowWidth, windowHeight);
 
@@ -255,24 +253,9 @@ public class Renderer {
         GLHelper.checkAndThrow();
     }
 
-    private void test() {
-        glDisable(GL_DEPTH_TEST);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(-1, 1, -1, 1, -1.0, 1.0);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        GL20.glUseProgram(0);
-        glColor4f(1, 0, 0, 1);
-        glBegin(GL_QUADS);
-        glVertex3f(0, 0.5f, 0.1f);
-        glVertex3f(0, 0, 0.1f);
-        glVertex3f(0.5f, 0, 0.1f);
-        glVertex3f(0.5f, 0.5f, 0.1f);
-        glEnd();
-    }
-
+    /**
+     *
+     */
     private class EffectUniformProvider implements FxUniformProvider {
         private Level level;
 

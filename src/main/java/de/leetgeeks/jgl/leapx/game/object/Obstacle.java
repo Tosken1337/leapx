@@ -10,8 +10,18 @@ import org.joml.Vector2f;
  */
 public class Obstacle extends GameObject {
 
+    private boolean isEvading;
+
     public Obstacle(Vector2f centerPosition, Vector2f dimension, float angle) {
         super(centerPosition, dimension, angle);
+    }
+
+    public void setIsEvading(boolean isEvading) {
+        this.isEvading = isEvading;
+    }
+
+    public boolean isEvading() {
+        return isEvading;
     }
 
     @Override
