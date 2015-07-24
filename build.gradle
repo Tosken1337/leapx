@@ -1,8 +1,13 @@
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'application'
 
 sourceCompatibility = 1.8
 version = '1.0'
+
+mainClassName = "de.leetgeeks.jgl.leapx.MainApplication"
+applicationDefaultJvmArgs = ["-Xmx768m -Dlog4j.configurationFile=log.xml -Djava.library.path= ../natives "]
+
 
 repositories {
     mavenCentral()
@@ -14,10 +19,29 @@ dependencies {
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.3'
     compile group: 'org.lwjgl', name: 'lwjgl', version: '3.0.0a'
     compile group: 'org.jbox2d', name: 'jbox2d-library', version: '2.2.1.1'
+    compile group: 'org.joml', name: 'joml', version: '1.4.0'
     compile files('libs/leapmotion/LeapJava.jar')
 }
 
-def manifestClasspath = configurations.compile.collect { it.getName() }.join(' ')
+
+task copyNatives {
+    def natives = file("$buildDir/natives")
+    outputs.dir natives
+    doLast {
+        natives.mkdirs()
+        copy {
+            from "working_dir"
+            into "$buildDir/natives"
+        }
+    }
+}
+applicationDistribution.from(copyNatives) {
+    into "natives"
+}
+
+
+// I think the manifest generation is not necessary anymore. The application plugin will build a execution script which configures the classpath e.g.
+/*def manifestClasspath = configurations.compile.collect { it.getName() }.join(' ')
 jar {
     manifest {
         attributes(
@@ -27,4 +51,4 @@ jar {
                 "classpath": manifestClasspath
                 )
     }
-}
+}*/

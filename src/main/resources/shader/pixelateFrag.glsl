@@ -10,8 +10,6 @@ float random(vec3 scale,float seed){return fract(sin(dot(gl_FragCoord.xyz+seed,s
 
 void main(void) {
     float amount = 500;
-    //vec2 resolution = vec2(1920, 1080);
-    //out_color = texture(texImage, texCoord);
 
     // Pixelate
     float d = 1.0 / amount;
