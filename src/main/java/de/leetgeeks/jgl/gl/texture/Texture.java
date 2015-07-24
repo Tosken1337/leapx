@@ -46,7 +46,11 @@ public class Texture implements GLResource {
      * @param data Picture Data in RGBA format
      */
     public Texture(int width, int height, ByteBuffer data) {
-        this(width, height, GL_RGBA8, data);
+        this(width, height, GL_RGBA8, data, GL_LINEAR, GL_CLAMP);
+    }
+
+    public Texture(int width, int height, ByteBuffer data, int filterMode, int wrapMode) {
+        this(width, height, GL_RGBA8, data, filterMode, wrapMode);
     }
 
     public Texture(int width, int height, int format) {
@@ -74,17 +78,17 @@ public class Texture implements GLResource {
      * @param format    Either GL_RGBA8 or GL_RGB
      * @param data
      */
-    public Texture(int width, int height, int format, ByteBuffer data) {
+    public Texture(int width, int height, int format, ByteBuffer data, int filterMode, int wrapMode) {
         id = glGenTextures();
         this.width = width;
         this.height = height;
 
         glBindTexture(GL_TEXTURE_2D, id);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMode);
 
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format == GL_RGBA8 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, data);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -124,13 +128,17 @@ public class Texture implements GLResource {
         return height;
     }
 
+    public static Texture loadTexture(String path) {
+        return loadTexture(path, GL_LINEAR, GL_CLAMP);
+    }
+
     /**
      * Load texture from file.
      *
      * @param path File path of the texture
      * @return Texture from specified file
      */
-    public static Texture loadTexture(String path) {
+    public static Texture loadTexture(String path, int filterMode, int wrapMode) {
         BufferedImage image = null;
         try {
             InputStream in = new FileInputStream(path);
@@ -174,7 +182,7 @@ public class Texture implements GLResource {
             /* Do not forget to flip the buffer! */
             buffer.flip();
 
-            return new Texture(width, height, buffer);
+            return new Texture(width, height, buffer, filterMode, wrapMode);
         } else {
             throw new RuntimeException("File extension not supported!"
                     + System.lineSeparator() + "The following file extensions "

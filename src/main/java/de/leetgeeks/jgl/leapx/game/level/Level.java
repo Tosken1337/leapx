@@ -209,7 +209,7 @@ public class Level {
         // Create physx object for each obstacle
         final float density = 0.3f;
         final float restitution = 1f;
-        final float friction = 0.0f;
+        final float friction = 0.1f;
 
         return physxSimulator.createRectangle(
                 obstacle.getWidth(), obstacle.getHeight(),

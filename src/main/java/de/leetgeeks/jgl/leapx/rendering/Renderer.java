@@ -17,7 +17,6 @@ import de.leetgeeks.jgl.leapx.game.level.Level;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.leapx.game.object.Player;
-import de.leetgeeks.jgl.math.MathHelper;
 import de.leetgeeks.jgl.util.GameDuration;
 import de.leetgeeks.jgl.util.ResourceUtil;
 import org.apache.logging.log4j.LogManager;
@@ -54,6 +53,7 @@ public class Renderer {
 
     private Texture playerTexture;
     private Texture obstacleTexture;
+    private Texture backgroundTexture1;
 
     private Matrix4f coordinateRootTranslation;
 
@@ -62,7 +62,6 @@ public class Renderer {
     private FrameBufferObject fbo;
 
     private PostProcessor postFx;
-
     private TrueTypeFont font;
 
     public void init() {
@@ -74,8 +73,7 @@ public class Renderer {
             postFx = new PostProcessor();
             postFx.init();
 
-            //font = new TrueTypeFont("font/invasion.ttf", 38f);
-            font = new TrueTypeFont("font/ataris.ttf", 28f);
+            font = new TrueTypeFont("font/kenvector_future.ttf", 28f);
             font.init();
         } catch (Exception e) {
             log.error("Initialization failed!", e);
@@ -109,6 +107,9 @@ public class Renderer {
 
         texturePath = ResourceUtil.getResourceFile("/textures/obstacles/meteorGrey_big2.png", this.getClass());
         obstacleTexture = Texture.loadTexture(texturePath.toString());
+
+        texturePath = ResourceUtil.getResourceFile("/textures/background/black.png", this.getClass());
+        backgroundTexture1 = Texture.loadTexture(texturePath.toString(), GL_LINEAR, GL_REPEAT);
         GLHelper.checkAndThrow();
     }
 
@@ -121,9 +122,9 @@ public class Renderer {
         fragmentShaderSource = ResourceUtil.getResourceFileAsString("/shader/playerFrag.glsl", this.getClass());
         playerShader = ShaderProgram.buildProgram(vertexShaderSource, fragmentShaderSource);
 
-        /*vertexShaderSource = ResourceUtil.getResourceFileAsString("/shader/backgroundVert.glsl", this.getClass());
+        vertexShaderSource = ResourceUtil.getResourceFileAsString("/shader/backgroundVert.glsl", this.getClass());
         fragmentShaderSource = ResourceUtil.getResourceFileAsString("/shader/backgroundFrag.glsl", this.getClass());
-        backgroundShader = ShaderProgram.buildProgram(vertexShaderSource, fragmentShaderSource);*/
+        backgroundShader = ShaderProgram.buildProgram(vertexShaderSource, fragmentShaderSource);
 
         GLHelper.checkAndThrow();
     }
@@ -180,9 +181,25 @@ public class Renderer {
     }
 
 
-    private void drawArena(final GameArena arena) {
+    private void drawArena(final GameArena arena, double elapsedMillis) {
         // Draw background first
+        backgroundTexture1.bind(0);
+        backgroundShader.use();
 
+        final Matrix4f mat = new Matrix4f();
+        final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
+        mat.identity();
+        mat.translate(0, 0, -0.5f);
+        mat.scale(arena.getWidth(), arena.getHeight(), 1);
+        Matrix4f tmp = new Matrix4f(camera.getViewProjection()).mul(mat);
+        tmp.get(matrixBuffer);
+        backgroundShader.setUniformMatrixF("viewProjMatrix", matrixBuffer);
+        backgroundShader.setUniformF("time", ((float) elapsedMillis));
+        backgroundShader.setUniformF("screenAspect", ((float) windowWidth / windowHeight));
+
+        GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 6);
+
+        backgroundTexture1.unbind();
     }
 
     private void drawObstacles(final List<Obstacle> obstacles, double elapsedMillis) {
@@ -195,7 +212,7 @@ public class Renderer {
         obstacles.forEach(object -> {
             mat.identity();
             mat.translate(object.getCenterPosition().x, object.getCenterPosition().y, 0);
-            mat.rotate(((float) MathHelper.radToDeg(object.getAngle())), 0, 0, 1);
+            mat.rotate(object.getAngle(), 0, 0, 1);
             mat.scale(object.getWidth(), object.getHeight(), 1);
 
             Matrix4f tmp = new Matrix4f(camera.getViewProjection()).mul(coordinateRootTranslation).mul(mat);
@@ -219,7 +236,7 @@ public class Renderer {
 
         mat.identity();
         mat.translate(player.getCenterPosition().x, player.getCenterPosition().y, 0);
-        mat.rotate(((float) MathHelper.radToDeg(player.getAngle())), 0, 0, 1);
+        mat.rotate(player.getAngle(), 0, 0, 1);
         mat.scale(player.getWidth(), player.getHeight(), 1);
 
         Matrix4f tmp = new Matrix4f(camera.getViewProjection()).mul(coordinateRootTranslation).mul(mat);
@@ -236,7 +253,7 @@ public class Renderer {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         quadVao.bind();
-        drawArena(arena);
+        drawArena(arena, elapsedMillis);
         drawObstacles(gameLevel.getObstacles(), elapsedMillis);
         drawPlayer(gameLevel.getPlayer(), elapsedMillis);
         quadVao.unbind();
