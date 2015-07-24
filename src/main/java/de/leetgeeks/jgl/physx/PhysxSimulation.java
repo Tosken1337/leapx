@@ -27,8 +27,8 @@ public class PhysxSimulation {
     private static Logger log = LogManager.getLogger(PhysxSimulation.class);
 
     private static float TIMESTEP = 1.0f/60.0f;
-    private static int VELOCITY_ITERATIONS = 8;
-    private static int POSITION_ITERATIONS = 3;
+    private static int VELOCITY_ITERATIONS = 6;
+    private static int POSITION_ITERATIONS = 2;
 
     private World world;
 
@@ -89,7 +89,7 @@ public class PhysxSimulation {
         bodyDef.type = dynamic ? BodyType.DYNAMIC : BodyType.STATIC;
         bodyDef.position.set(position);
         bodyDef.fixedRotation = false;
-        bodyDef.angularDamping = 0.1f;
+        bodyDef.angularDamping = 0.2f;
 
         final PolygonShape shape = new PolygonShape();
         shape.setAsBox(width / 2, height / 2);

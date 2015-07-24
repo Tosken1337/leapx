@@ -50,6 +50,7 @@ public class Renderer {
     private OrthoCamera camera;
     private ShaderProgram obstacleShader;
     private ShaderProgram playerShader;
+    private ShaderProgram backgroundShader;
 
     private Texture playerTexture;
     private Texture obstacleTexture;
@@ -106,7 +107,7 @@ public class Renderer {
         File texturePath = ResourceUtil.getResourceFile("/textures/spacestation.png", this.getClass());
         playerTexture = Texture.loadTexture(texturePath.toString());
 
-        texturePath = ResourceUtil.getResourceFile("/textures/greenplanet.png", this.getClass());
+        texturePath = ResourceUtil.getResourceFile("/textures/obstacles/meteorGrey_big2.png", this.getClass());
         obstacleTexture = Texture.loadTexture(texturePath.toString());
         GLHelper.checkAndThrow();
     }
@@ -119,6 +120,10 @@ public class Renderer {
         vertexShaderSource = ResourceUtil.getResourceFileAsString("/shader/obstacleVert.glsl", this.getClass());
         fragmentShaderSource = ResourceUtil.getResourceFileAsString("/shader/playerFrag.glsl", this.getClass());
         playerShader = ShaderProgram.buildProgram(vertexShaderSource, fragmentShaderSource);
+
+        /*vertexShaderSource = ResourceUtil.getResourceFileAsString("/shader/backgroundVert.glsl", this.getClass());
+        fragmentShaderSource = ResourceUtil.getResourceFileAsString("/shader/backgroundFrag.glsl", this.getClass());
+        backgroundShader = ShaderProgram.buildProgram(vertexShaderSource, fragmentShaderSource);*/
 
         GLHelper.checkAndThrow();
     }
@@ -176,6 +181,7 @@ public class Renderer {
 
 
     private void drawArena(final GameArena arena) {
+        // Draw background first
 
     }
 
