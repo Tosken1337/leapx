@@ -13,6 +13,8 @@ import de.leetgeeks.jgl.gl.postprocessing.PostProcessor;
 import de.leetgeeks.jgl.gl.shader.ShaderProgram;
 import de.leetgeeks.jgl.gl.texture.FrameBufferObject;
 import de.leetgeeks.jgl.gl.texture.Texture;
+import de.leetgeeks.jgl.gl.texture.TextureAttributes;
+import de.leetgeeks.jgl.gl.texture.TextureCache;
 import de.leetgeeks.jgl.leapx.game.level.Level;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
@@ -27,10 +29,10 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.OpenGLException;
 
-import java.io.File;
 import java.nio.FloatBuffer;
-import java.util.Arrays;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -51,9 +53,12 @@ public class Renderer {
     private ShaderProgram playerShader;
     private ShaderProgram backgroundShader;
 
+    private TextureCache textureCache;
+
     private Texture playerTexture;
-    private Texture obstacleTexture;
-    private Texture backgroundTexture1;
+    private Texture backgroundTexture;
+    private List<Texture> obstacleTextures;
+    private Map<Obstacle, Texture> obstacleTextureMap = new HashMap<>();
 
     private Matrix4f coordinateRootTranslation;
 
@@ -102,14 +107,18 @@ public class Renderer {
     }
 
     private void initTextures() throws Exception {
-        File texturePath = ResourceUtil.getResourceFile("/textures/spacestation.png", this.getClass());
-        playerTexture = Texture.loadTexture(texturePath.toString());
+        textureCache = new TextureCache();
+        playerTexture = textureCache.get("/textures/ufoBlue.png");
+        backgroundTexture = textureCache.get("/textures/background/black.png", new TextureAttributes(GL_LINEAR, GL_REPEAT));
+        obstacleTextures = new ArrayList<>();
+        Files.list(Paths.get("resources/textures/obstacles")).forEach(path -> {
+            try {
+                obstacleTextures.add(textureCache.get("/textures/obstacles/" + path.getFileName().toString()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
 
-        texturePath = ResourceUtil.getResourceFile("/textures/obstacles/meteorGrey_big2.png", this.getClass());
-        obstacleTexture = Texture.loadTexture(texturePath.toString());
-
-        texturePath = ResourceUtil.getResourceFile("/textures/background/black.png", this.getClass());
-        backgroundTexture1 = Texture.loadTexture(texturePath.toString(), GL_LINEAR, GL_REPEAT);
         GLHelper.checkAndThrow();
     }
 
@@ -183,7 +192,7 @@ public class Renderer {
 
     private void drawArena(final GameArena arena, double elapsedMillis) {
         // Draw background first
-        backgroundTexture1.bind(0);
+        backgroundTexture.bind(0);
         backgroundShader.use();
 
         final Matrix4f mat = new Matrix4f();
@@ -199,32 +208,31 @@ public class Renderer {
 
         GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 6);
 
-        backgroundTexture1.unbind();
+        backgroundTexture.unbind();
     }
 
     private void drawObstacles(final List<Obstacle> obstacles, double elapsedMillis) {
-        obstacleTexture.bind(0);
         obstacleShader.use();
 
-        // @TODO: perform multiplication of viewprojection and translation, rotation in shader
         final Matrix4f mat = new Matrix4f();
         final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
-        obstacles.forEach(object -> {
+        for (int i = 0; i < obstacles.size(); i++) {
+            final Obstacle obstacle = obstacles.get(i);
             mat.identity();
-            mat.translate(object.getCenterPosition().x, object.getCenterPosition().y, 0);
-            mat.rotate(object.getAngle(), 0, 0, 1);
-            mat.scale(object.getWidth(), object.getHeight(), 1);
+            mat.translate(obstacle.getCenterPosition().x, obstacle.getCenterPosition().y, 0);
+            mat.rotate(obstacle.getAngle(), 0, 0, 1);
+            mat.scale(obstacle.getWidth(), obstacle.getHeight(), 1);
 
             Matrix4f tmp = new Matrix4f(camera.getViewProjection()).mul(coordinateRootTranslation).mul(mat);
             tmp.get(matrixBuffer);
+            final int texId = i % obstacleTextures.size();
+            obstacleTextureMap.computeIfAbsent(obstacle, o -> obstacleTextures.get(texId)).bind(0);
             obstacleShader.setUniformMatrixF("viewProjMatrix", matrixBuffer);
-            obstacleShader.setUniformB("isEvading", object.isEvading());
+            obstacleShader.setUniformB("isEvading", obstacle.isEvading());
             obstacleShader.setUniformF("time", ((float) elapsedMillis));
 
             GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 6);
-        });
-
-        obstacleTexture.unbind();
+        }
     }
 
     private void drawPlayer(final Player player, double elapsedMillis) {
@@ -271,7 +279,6 @@ public class Renderer {
             displayString = duration.toString();
         }
         font.printOnScreen(50, 50, displayString, windowWidth, windowHeight);
-
 
         GLHelper.checkAndThrow();
     }

@@ -21,6 +21,10 @@ dependencies {
     compile group: 'org.jbox2d', name: 'jbox2d-library', version: '2.2.1.1'
     compile group: 'org.joml', name: 'joml', version: '1.4.0'
     compile files('libs/leapmotion/LeapJava.jar')
+    compile files('libs/soundsystem/SoundSystem.jar')
+    compile files('libs/soundsystem/CodecJOgg.jar')
+    compile files('libs/soundsystem/CodecWav.jar')
+    compile files('libs/soundsystem/LibraryJavaSound.jar')
 }
 
 

@@ -128,8 +128,12 @@ public class Texture implements GLResource {
         return height;
     }
 
-    public static Texture loadTexture(String path) {
-        return loadTexture(path, GL_LINEAR, GL_CLAMP);
+    public static Texture loadTexture(final String path) {
+        return loadTexture(path, GL_LINEAR, GL_REPEAT);
+    }
+
+    public static Texture loadTexture(final String path, final TextureAttributes attributes) {
+        return loadTexture(path, attributes.getFilterMode(), attributes.getWrapMode());
     }
 
     /**

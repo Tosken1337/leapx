@@ -12,6 +12,9 @@ import org.jbox2d.dynamics.contacts.Contact;
 import org.jbox2d.dynamics.joints.Joint;
 import org.jbox2d.dynamics.joints.JointDef;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Lwjgl
  * User: Sebastian
@@ -31,8 +34,8 @@ public class PhysxSimulation {
     private static int POSITION_ITERATIONS = 2;
 
     private World world;
+    private List<CollisionListener> collisionListeners = new ArrayList<>();
 
-    private CollisionListener collisionListener;
 
     private PhysxSimulation() {
 
@@ -45,9 +48,7 @@ public class PhysxSimulation {
         simulator.world.setContactListener(new ContactListener() {
             @Override
             public void beginContact(Contact contact) {
-                if (simulator.collisionListener != null) {
-                    simulator.collisionListener.onCollision(contact.getFixtureA(), contact.getFixtureB());
-                }
+                simulator.collisionListeners.forEach(collisionListener -> collisionListener.onCollision(contact.getFixtureA(), contact.getFixtureB()));
             }
 
             @Override
@@ -66,8 +67,8 @@ public class PhysxSimulation {
         return simulator;
     }
 
-    public void setCollisionListener(final CollisionListener listener) {
-        this.collisionListener = listener;
+    public void addCollisionListener(final CollisionListener listener) {
+        this.collisionListeners.add(listener);
     }
 
     public Joint createJoint(final JointDef def) {

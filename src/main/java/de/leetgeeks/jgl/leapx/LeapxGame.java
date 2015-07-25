@@ -6,12 +6,14 @@ import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.leapx.game.object.Player;
 import de.leetgeeks.jgl.leapx.input.leap.LeapInput;
 import de.leetgeeks.jgl.leapx.rendering.Renderer;
+import de.leetgeeks.jgl.leapx.sound.AudioEngine;
 import de.leetgeeks.jgl.math.MathHelper;
 import de.leetgeeks.jgl.physx.PhysxBody;
 import de.leetgeeks.jgl.physx.PhysxSimulation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jbox2d.common.Vec2;
+import org.jbox2d.dynamics.Fixture;
 import org.joml.Vector2f;
 
 import java.util.ArrayList;
@@ -61,6 +63,8 @@ public class LeapxGame {
      */
     private List<PhysxBody<Obstacle>> obstacleBodys;
 
+    private AudioEngine audio;
+
 
     public LeapxGame() {
     }
@@ -70,8 +74,21 @@ public class LeapxGame {
 
         renderer = new Renderer();
 
+        /*audio = new AudioEngine();
+        try {
+            audio.init();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
+
         // Initialize physx world with zero gravity
         physxSimulator = PhysxSimulation.createWithWorld(new Vec2(0, 0));
+        physxSimulator.addCollisionListener(new PhysxSimulation.CollisionListener() {
+            @Override
+            public void onCollision(Fixture bodyA, Fixture bodyB) {
+                //audio.explosion();
+            }
+        });
 
         obstacleBodys = new ArrayList<>();
 

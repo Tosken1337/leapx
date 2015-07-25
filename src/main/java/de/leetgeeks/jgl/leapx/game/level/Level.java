@@ -58,7 +58,7 @@ public class Level {
         obstacles = spawnObstacles(arena, obstacleSize, 10);
         player = spawnPlayer(arena);
         levelStateComputer.init(this, arena);
-        physxSimulator.setCollisionListener(new CollisionListener());
+        physxSimulator.addCollisionListener(new CollisionListener());
 
         // Perform one time step to resolve collisions
         simulatePhysx(0);
@@ -225,7 +225,7 @@ public class Level {
      * @return
      */
     private PhysxBody<Player> spawnPlayer(GameArena arena) {
-        final Player player = new Player(new Vector2f(0, 0), new Vector2f(4, 4), 0);
+        final Player player = new Player(new Vector2f(0, 0), new Vector2f(2.5f, 2.5f), 0);
         return physxSimulator.createRectangle(
                 player.getWidth(),
                 player.getHeight(),
