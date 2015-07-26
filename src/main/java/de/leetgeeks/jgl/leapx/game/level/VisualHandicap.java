@@ -8,7 +8,8 @@ package de.leetgeeks.jgl.leapx.game.level;
  */
 public enum VisualHandicap {
     Blur,
-    Color,
+    Edge,
     Pixel,
+    Comic,
     None
 }

@@ -57,6 +57,7 @@ public class Renderer {
 
     private Texture playerTexture;
     private Texture backgroundTexture;
+    private Texture backgroundTexture2;
     private List<Texture> obstacleTextures;
     private Map<Obstacle, Texture> obstacleTextureMap = new HashMap<>();
 
@@ -110,6 +111,7 @@ public class Renderer {
         textureCache = new TextureCache();
         playerTexture = textureCache.get("/textures/ufoBlue.png");
         backgroundTexture = textureCache.get("/textures/background/black.png", new TextureAttributes(GL_LINEAR, GL_REPEAT));
+        backgroundTexture2 = textureCache.get("/textures/background/galaxy.png", new TextureAttributes(GL_LINEAR, GL_REPEAT));
         obstacleTextures = new ArrayList<>();
         Files.list(Paths.get("resources/textures/obstacles")).forEach(path -> {
             try {
@@ -193,6 +195,7 @@ public class Renderer {
     private void drawArena(final GameArena arena, double elapsedMillis) {
         // Draw background first
         backgroundTexture.bind(0);
+        backgroundTexture2.bind(1);
         backgroundShader.use();
 
         final Matrix4f mat = new Matrix4f();
@@ -204,11 +207,14 @@ public class Renderer {
         tmp.get(matrixBuffer);
         backgroundShader.setUniformMatrixF("viewProjMatrix", matrixBuffer);
         backgroundShader.setUniformF("time", ((float) elapsedMillis));
+        backgroundShader.setUniformTextureUnit("texImage", 0);
+        backgroundShader.setUniformTextureUnit("texImage2", 1);
         backgroundShader.setUniformF("screenAspect", ((float) windowWidth / windowHeight));
 
         GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 6);
 
         backgroundTexture.unbind();
+        backgroundTexture2.unbind();
     }
 
     private void drawObstacles(final List<Obstacle> obstacles, double elapsedMillis) {
@@ -279,6 +285,7 @@ public class Renderer {
             displayString = duration.toString();
         }
         font.printOnScreen(50, 50, displayString, windowWidth, windowHeight);
+        font.printOnScreen(1400, 50, gameLevel.getPlayer().getScoreString(), windowWidth, windowHeight);
 
         GLHelper.checkAndThrow();
     }

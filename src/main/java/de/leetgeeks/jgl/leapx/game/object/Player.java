@@ -9,7 +9,17 @@ import org.joml.Vector2f;
  * Time: 13:37
  */
 public class Player extends GameObject {
+    private int score;
+
     public Player(Vector2f centerPosition, Vector2f dimension, float angle) {
         super(centerPosition, dimension, angle);
+    }
+
+    public void addToScore(int points) {
+        score += points;
+    }
+
+    public String getScoreString() {
+        return String.format("Score: %d", score);
     }
 }

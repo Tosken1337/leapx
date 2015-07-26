@@ -1,9 +1,7 @@
 package de.leetgeeks.jgl.leapx.rendering;
 
 import de.leetgeeks.jgl.gl.postprocessing.BasePostProcess;
-import de.leetgeeks.jgl.gl.postprocessing.fx.Blur;
-import de.leetgeeks.jgl.gl.postprocessing.fx.PassThroughPostProcess;
-import de.leetgeeks.jgl.gl.postprocessing.fx.Pixelate;
+import de.leetgeeks.jgl.gl.postprocessing.fx.*;
 import de.leetgeeks.jgl.leapx.game.level.VisualHandicap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,6 +22,8 @@ public final class VisualHandicapPostFxFactory {
         postFxRegistry.put(VisualHandicap.None, new PassThroughPostProcess());
         postFxRegistry.put(VisualHandicap.Pixel, new Pixelate());
         postFxRegistry.put(VisualHandicap.Blur, new Blur());
+        postFxRegistry.put(VisualHandicap.Edge, new Edge());
+        postFxRegistry.put(VisualHandicap.Comic, new Comic());
     }
 
     private VisualHandicapPostFxFactory() {

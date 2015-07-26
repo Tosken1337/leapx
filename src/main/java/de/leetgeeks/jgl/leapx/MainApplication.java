@@ -54,6 +54,8 @@ public class MainApplication implements ApplicationCallback {
         /*if (key == GLFW.GLFW_KEY_RIGHT) {
             playerBox.getBody().applyLinearImpulse(new Vec2(2, 0), playerBox.getPosition());
         }*/
+
+        game.onKey(key, scancode, action, mods);
     }
 
     @Override

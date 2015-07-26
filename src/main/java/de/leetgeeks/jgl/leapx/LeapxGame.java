@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Fixture;
 import org.joml.Vector2f;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -178,6 +179,12 @@ public class LeapxGame {
             }
         } else if (gameLevel.isRunning()) {
             gameLevel.pause();
+        }
+    }
+
+    public void onKey(int key, int scancode, int action, int mods) {
+        if (key == GLFW.GLFW_KEY_F1 && action == 1) {
+            gameLevel.switchVisualHandicap();
         }
     }
 }

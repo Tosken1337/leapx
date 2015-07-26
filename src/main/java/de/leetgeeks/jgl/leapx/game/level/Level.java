@@ -16,10 +16,7 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Fixture;
 import org.joml.Vector2f;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -139,6 +136,12 @@ public class Level {
         return levelTimer.getTime();
     }
 
+    public void switchVisualHandicap() {
+        final List<VisualHandicap> valueList = Arrays.asList(VisualHandicap.values());
+        final int currentIndex = valueList.indexOf(visualHandicap);
+        visualHandicap = valueList.get((currentIndex + 1) % valueList.size());
+    }
+
     /**
      * Current player collides with obstacles.
      * @param obstacle  The obstacle which has collided with the player.
@@ -148,6 +151,15 @@ public class Level {
         final Optional<PhysxBody<Obstacle>> obstacleBody = obstacles.stream()
                 .filter(obstaclePhysxBody -> obstaclePhysxBody.getPayload().equals(obstacle))
                 .findFirst();
+
+        if (obstacleBody.isPresent()) {
+            if (obstacle.isEvading()) {
+                player.getPayload().addToScore(1000);
+                obstacle.setIsEvading(false);
+            } else {
+                player.getPayload().addToScore(-800);
+            }
+        }
         //destroyObstacle(obstacleBody.get());
     }
 

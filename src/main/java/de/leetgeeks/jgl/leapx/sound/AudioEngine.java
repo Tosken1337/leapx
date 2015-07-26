@@ -1,6 +1,5 @@
 package de.leetgeeks.jgl.leapx.sound;
 
-import de.leetgeeks.jgl.util.ResourceUtil;
 import paulscode.sound.SoundSystem;
 import paulscode.sound.SoundSystemConfig;
 import paulscode.sound.SoundSystemException;
@@ -10,7 +9,6 @@ import paulscode.sound.libraries.LibraryJavaSound;
 
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
-import java.io.File;
 
 /**
  * Lwjgl
@@ -46,11 +44,7 @@ public class AudioEngine implements LineListener {
 
 
         mySoundSystem = new SoundSystem();
-
-        // Create a new ambient, looping source called "Cool Music":
-        final File soundFile = ResourceUtil.getResourceFile("/sounds/ambient.wav", this.getClass());
-        //final File soundFile2 = ResourceUtil.getResourceFile("/sounds/explosion.wav", this.getClass());
-        mySoundSystem.backgroundMusic( "Background music", "ambient.wav", true );
+        mySoundSystem.backgroundMusic( "Background music", "explosion.wav", true );
 
         // Play the source:
         mySoundSystem.play("Background music");
