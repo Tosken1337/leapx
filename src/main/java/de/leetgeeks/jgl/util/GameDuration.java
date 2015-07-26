@@ -50,4 +50,8 @@ public final class GameDuration {
         long millis = sinceStart.toMillis() - (seconds * 1000);
         return String.format("%02d:%02d:%03d", minutes, seconds, millis);
     }
+
+    public long seconds() {
+        return sinceStart.getSeconds();
+    }
 }

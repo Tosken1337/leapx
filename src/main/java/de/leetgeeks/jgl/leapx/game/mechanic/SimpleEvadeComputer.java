@@ -38,12 +38,30 @@ public class SimpleEvadeComputer implements LevelStateComputer {
     }
 
     @Override
-    public void compute(GameDuration duration) {
+    public void update(GameDuration duration) {
         if (lastEvadeEvent == null || lastEvadeEvent.plus(10).isOlderThan(duration)) {
-            log.debug("Start evade");
+            log.debug("Start evade at {}", duration);
             final List<PhysxBody<Obstacle>> obstacles = level.getObstaclePhysx();
             evadeCommand.execute(obstacles.get(rand.nextInt(obstacles.size())), duration);
             lastEvadeEvent = duration;
+        }
+    }
+
+    @Override
+    public void playerCollision(Obstacle obstacle) {
+        if (obstacle.isEvading()) {
+            final GameDuration now = level.getGameDuration();
+            final GameDuration evadeStart = obstacle.getEvadeStartTime();
+            final long seconds = now.minus(evadeStart).seconds();
+            final int scrore = Math.max(1200 - (int)seconds * 100, 150);
+            log.debug("Obstacle caught after {} seconds. Scoring {} points", seconds, scrore);
+
+            level.getPlayer().addToScore(scrore);
+            obstacle.stopEvade();
+            level.deactivateVisualHandicap();
+        } else {
+            level.getPlayer().addToScore(-500);
+            level.activateRandomVisualHandycap();
         }
     }
 }

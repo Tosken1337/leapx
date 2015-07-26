@@ -10,7 +10,7 @@ public class Timer {
     private boolean isRunning = false;
 
     /**
-     * The base nano totalElapsedTime to compute the elapsed totalElapsedTime and update the totalElapsedTime when ticking the timer.
+     * The base nano totalElapsedTime to update the elapsed totalElapsedTime and update the totalElapsedTime when ticking the timer.
      */
     private long baseNanoTime = 0L;
 
@@ -81,7 +81,7 @@ public class Timer {
 
     /**
      * Sets the current system nano totalElapsedTime as the reference / root totalElapsedTime.
-     * This base totalElapsedTime will be used to compute the elapsed totalElapsedTime when the timer gets a tick.
+     * This base totalElapsedTime will be used to update the elapsed totalElapsedTime when the timer gets a tick.
      */
     private void renewBaseTime() {
         baseNanoTime = System.nanoTime();

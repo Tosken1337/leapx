@@ -1,5 +1,6 @@
 package de.leetgeeks.jgl.leapx.game.object;
 
+import de.leetgeeks.jgl.util.GameDuration;
 import org.joml.Vector2f;
 
 /**
@@ -11,13 +12,19 @@ import org.joml.Vector2f;
 public class Obstacle extends GameObject {
 
     private boolean isEvading;
+    private GameDuration evadeStartTime;
 
     public Obstacle(Vector2f centerPosition, Vector2f dimension, float angle) {
         super(centerPosition, dimension, angle);
     }
 
-    public void setIsEvading(boolean isEvading) {
+    public void startEvade(boolean isEvading, GameDuration timestamp) {
         this.isEvading = isEvading;
+        this.evadeStartTime = timestamp;
+    }
+
+    public void stopEvade() {
+        this.isEvading = false;
     }
 
     public boolean isEvading() {
@@ -27,5 +34,9 @@ public class Obstacle extends GameObject {
     @Override
     public String toString() {
         return "Obstacle at position " + this.centerPosition;
+    }
+
+    public GameDuration getEvadeStartTime() {
+        return evadeStartTime;
     }
 }

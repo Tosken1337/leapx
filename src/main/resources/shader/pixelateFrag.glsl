@@ -9,7 +9,7 @@ out vec4 out_color;
 float random(vec3 scale,float seed){return fract(sin(dot(gl_FragCoord.xyz+seed,scale))*43758.5453+seed);}
 
 void main(void) {
-    float amount = 500;
+    float amount = 250;
 
     // Pixelate
     float d = 1.0 / amount;

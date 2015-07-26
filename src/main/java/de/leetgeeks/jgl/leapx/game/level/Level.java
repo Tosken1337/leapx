@@ -42,6 +42,8 @@ public class Level {
 
     private VisualHandicap visualHandicap;
 
+    private Random rand = new Random();
+
     public Level(PhysxSimulation physxSimulator) {
         obstacles = new ArrayList<>();
         levelStateComputer = new SimpleEvadeComputer();
@@ -88,7 +90,7 @@ public class Level {
     public void update(double elapsedTime) {
         final GameDuration levelTime = levelTimer.getTime();
         if (levelTimer.isRunning()) {
-            levelStateComputer.compute(levelTime);
+            levelStateComputer.update(levelTime);
             simulatePhysx(elapsedTime);
         }
 
@@ -142,6 +144,16 @@ public class Level {
         visualHandicap = valueList.get((currentIndex + 1) % valueList.size());
     }
 
+    public void deactivateVisualHandicap() {
+        visualHandicap = VisualHandicap.None;
+    }
+
+    public void activateRandomVisualHandycap() {
+        final List<VisualHandicap> valueList = new ArrayList<>(Arrays.asList(VisualHandicap.values()));
+        valueList.remove(VisualHandicap.None);
+        visualHandicap = valueList.get(rand.nextInt(valueList.size()));
+    }
+
     /**
      * Current player collides with obstacles.
      * @param obstacle  The obstacle which has collided with the player.
@@ -153,14 +165,8 @@ public class Level {
                 .findFirst();
 
         if (obstacleBody.isPresent()) {
-            if (obstacle.isEvading()) {
-                player.getPayload().addToScore(1000);
-                obstacle.setIsEvading(false);
-            } else {
-                player.getPayload().addToScore(-800);
-            }
+            levelStateComputer.playerCollision(obstacle);
         }
-        //destroyObstacle(obstacleBody.get());
     }
 
     /**
@@ -219,9 +225,9 @@ public class Level {
         final Obstacle obstacle = new Obstacle(position, new Vector2f(size, size), 0);
 
         // Create physx object for each obstacle
-        final float density = 0.3f;
-        final float restitution = 1f;
-        final float friction = 0.1f;
+        final float density = 0.5f;
+        final float restitution = 0.6f;
+        final float friction = 0.2f;
 
         return physxSimulator.createRectangle(
                 obstacle.getWidth(), obstacle.getHeight(),

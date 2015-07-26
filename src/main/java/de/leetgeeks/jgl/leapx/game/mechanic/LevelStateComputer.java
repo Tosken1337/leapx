@@ -2,6 +2,7 @@ package de.leetgeeks.jgl.leapx.game.mechanic;
 
 import de.leetgeeks.jgl.leapx.game.level.Level;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
+import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.util.GameDuration;
 
 /**
@@ -12,5 +13,7 @@ import de.leetgeeks.jgl.util.GameDuration;
  */
 public interface LevelStateComputer {
     void init(Level level, GameArena arena);
-    void compute(GameDuration duration);
+    void update(GameDuration duration);
+
+    void playerCollision(Obstacle obstacle);
 }
