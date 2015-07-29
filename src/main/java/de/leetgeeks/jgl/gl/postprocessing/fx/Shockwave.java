@@ -35,17 +35,17 @@ public class Shockwave extends BasePostProcess {
 
     @Override
     public void updateCustomUniforms(FxUniformProvider uniformProvider) {
-        //FxUniformWrapper<?> focusPoint = uniformProvider.getUniformForName("focusPoint");
-        //final Vector2f focus = ((Vector2f) focusPoint.getUniformValue());
+        FxUniformWrapper<?> focusPoint = uniformProvider.getUniformForName("playerPositionTexCoord");
         FxUniformWrapper<?> time = uniformProvider.getUniformForName("time");
         FxUniformWrapper<?> activationTime = uniformProvider.getUniformForName("activationTime");
         final double timeValue = ((Double) time.getUniformValue());
         final double activationTimeValue = ((Double) activationTime.getUniformValue());
         final double deltaMillis = (timeValue - activationTimeValue) * 0.0008f;
 
-        final Vector2f center = new Vector2f(0.5f, 0.5f);
+        final Vector2f focus = ((Vector2f) focusPoint.getUniformValue());
+        //final Vector2f center = new Vector2f(0.5f, 0.5f);
         shaderProgram.use();
         shaderProgram.setUniformF("time", (float) deltaMillis);
-        shaderProgram.setUniformVector2f("centerPoint", center);
+        shaderProgram.setUniformVector2f("centerPoint", focus);
     }
 }

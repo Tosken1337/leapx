@@ -306,8 +306,12 @@ public class Renderer {
         public FxUniformWrapper<?> getUniformForName(String uniformName) {
             switch (uniformName) {
                 case "focusPoint":
-                    final Vector2f playerPosition = level.getPlayer().getCenterPosition();
+                    Vector2f playerPosition = level.getPlayer().getCenterPosition();
                     return new FxUniformWrapper<>(gameCoordinatesToScreen(playerPosition));
+
+                case "playerPositionTexCoord":
+                    playerPosition = level.getPlayer().getCenterPosition();
+                    return new FxUniformWrapper<>(gameCoordinatesToScreenTextureSpace(playerPosition));
 
                 case "time":
                     return new FxUniformWrapper<>(level.getTime());
@@ -324,6 +328,15 @@ public class Renderer {
             float projectionHeight = camera.getTop() - camera.getBottom();
             float x = (coordinate.x / projectionWidth) * windowWidth;
             float y = (coordinate.y / projectionHeight) * windowHeight;
+
+            return new Vector2f(x, y);
+        }
+
+        private Vector2f gameCoordinatesToScreenTextureSpace(final Vector2f coordinate) {
+            float projectionWidth = camera.getRight() - camera.getLeft();
+            float projectionHeight = camera.getTop() - camera.getBottom();
+            float x = (coordinate.x / projectionWidth);
+            float y = (coordinate.y / projectionHeight);
 
             return new Vector2f(x, y);
         }
