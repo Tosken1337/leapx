@@ -141,17 +141,23 @@ public class Level {
     public void switchVisualHandicap() {
         final List<VisualHandicap> valueList = Arrays.asList(VisualHandicap.values());
         final int currentIndex = valueList.indexOf(visualHandicap);
-        visualHandicap = valueList.get((currentIndex + 1) % valueList.size());
+        activateVisualHandicap(valueList.get((currentIndex + 1) % valueList.size()));
     }
 
     public void deactivateVisualHandicap() {
-        visualHandicap = VisualHandicap.None;
+        activateVisualHandicap(VisualHandicap.None);
     }
 
     public void activateRandomVisualHandycap() {
         final List<VisualHandicap> valueList = new ArrayList<>(Arrays.asList(VisualHandicap.values()));
         valueList.remove(VisualHandicap.None);
-        visualHandicap = valueList.get(rand.nextInt(valueList.size()));
+        activateVisualHandicap(valueList.get(rand.nextInt(valueList.size())));
+    }
+
+    private void activateVisualHandicap(VisualHandicap handicap) {
+        log.info("Activating visual handicap {}", handicap);
+        visualHandicap = handicap;
+        visualHandicap.setActivationTime(getTime());
     }
 
     /**

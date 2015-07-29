@@ -24,6 +24,7 @@ public final class VisualHandicapPostFxFactory {
         postFxRegistry.put(VisualHandicap.Blur, new Blur());
         postFxRegistry.put(VisualHandicap.Edge, new Edge());
         postFxRegistry.put(VisualHandicap.Comic, new Comic());
+        postFxRegistry.put(VisualHandicap.Schockwave, new Shockwave());
     }
 
     private VisualHandicapPostFxFactory() {

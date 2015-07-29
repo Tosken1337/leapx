@@ -11,5 +11,16 @@ public enum VisualHandicap {
     Edge,
     Pixel,
     Comic,
-    None
+    Schockwave,
+    None;
+
+    private double activationTime;
+
+    public void setActivationTime(double activationTime) {
+        this.activationTime = activationTime;
+    }
+
+    public double getActivationTime() {
+        return activationTime;
+    }
 }

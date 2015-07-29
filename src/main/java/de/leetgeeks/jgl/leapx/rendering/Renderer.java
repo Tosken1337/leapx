@@ -80,6 +80,7 @@ public class Renderer {
             postFx.init();
 
             font = new TrueTypeFont("font/kenvector_future.ttf", 28f);
+            //font = new TrueTypeFont("font/Pixel-Noir.ttf", 28f);
             font.init();
         } catch (Exception e) {
             log.error("Initialization failed!", e);
@@ -286,6 +287,7 @@ public class Renderer {
         }
         font.printOnScreen(50, 50, displayString, windowWidth, windowHeight);
         font.printOnScreen(1400, 50, gameLevel.getPlayer().getScoreString(), windowWidth, windowHeight);
+        //font.printOnScreen(750, 450, "kirkwood blaster", windowWidth, windowHeight);
 
         GLHelper.checkAndThrow();
     }
@@ -309,6 +311,9 @@ public class Renderer {
 
                 case "time":
                     return new FxUniformWrapper<>(level.getTime());
+
+                case "activationTime":
+                    return new FxUniformWrapper<>(level.getVisualHandicap().getActivationTime());
             }
 
             return null;
