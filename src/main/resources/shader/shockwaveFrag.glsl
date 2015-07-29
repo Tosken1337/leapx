@@ -30,5 +30,5 @@ void main(void) {
 
 
   vec4 waveColor = vec4(0.3, 0.3, 1, 0);
-  out_color = mix(texture2D(texImage, texCoord2), diffTime * 40 * waveColor , 0.2f);
+  out_color = mix(texture2D(texImage, texCoord2), diffTime * 40 * waveColor , diffTime * 10);
 }
