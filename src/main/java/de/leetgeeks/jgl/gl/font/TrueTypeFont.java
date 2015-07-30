@@ -2,6 +2,7 @@ package de.leetgeeks.jgl.gl.font;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.joml.Vector2f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
@@ -85,26 +86,6 @@ public class TrueTypeFont {
         }
     }
 
-/*    private void draw_init() {
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_TEXTURE_2D);
-        glDisable(GL_LIGHTING);
-        glDisable(GL_DEPTH_TEST);
-
-        glViewport(0, 0, fbw, fbh);
-        if ( black_on_white )
-            glClearColor(255, 255, 255, 0);
-        else
-            glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0.0, ww, wh, 0.0, -1.0, 1.0);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-    }*/
-
     private static void drawBoxTC(float x0, float y0, float x1, float y1, float s0, float t0, float s1, float t1) {
         glTexCoord2f(s0, t0);
         glVertex2f(x0, y0);
@@ -114,6 +95,25 @@ public class TrueTypeFont {
         glVertex2f(x1, y1);
         glTexCoord2f(s0, t1);
         glVertex2f(x0, y1);
+    }
+
+    public void printInScreen(HorizontalAlignment hAlign, float padding, float y, final String text, int screenWidth, int screenHeight) {
+        final Vector2f textSize = measureText(text);
+        float x = 0;
+        switch (hAlign) {
+
+            case Left:
+                x = padding;
+                break;
+            case Right:
+                x = screenWidth - textSize.x - padding;
+                break;
+            case Center:
+                x = (screenWidth - textSize.x) / 2f;
+                break;
+        }
+
+        printOnScreen(x, y, text, screenWidth, screenHeight);
     }
 
     public void printOnScreen(float x, float y, final String text, int screenWidth, int screenHeight) {
@@ -155,5 +155,28 @@ public class TrueTypeFont {
 
         glPopAttrib();
         glDisable(GL_TEXTURE_2D);
+    }
+
+    private Vector2f measureText(final String text) {
+        xb.put(0, 0);
+        yb.put(0, 0);
+
+        int font = 0; // 0 has no oversampling / 1 : 2x2 oversampling
+        chardata.position(font * 128 * STBTTPackedchar.SIZEOF);
+
+        float width = 0;
+        float height = 0;
+        for ( int i = 0; i < text.length(); i++ ) {
+            stbtt_GetPackedQuad(chardata, BITMAP_W, BITMAP_H, text.charAt(i), xb, yb, quad.buffer(), 1);
+            /*drawBoxTC(
+                    quad.getX0(), quad.getY0(), quad.getX1(), quad.getY1(),
+                    quad.getS0(), quad.getT0(), quad.getS1(), quad.getT1()
+            );*/
+
+            width = Math.max(width, quad.getX1());
+            height = Math.max(height, Math.abs(quad.getY0()));
+        }
+
+        return new Vector2f(width, height);
     }
 }

@@ -3,6 +3,7 @@ package de.leetgeeks.jgl.leapx.game.mechanic;
 import de.leetgeeks.jgl.leapx.game.command.EvadeCommand;
 import de.leetgeeks.jgl.leapx.game.command.ObstacleCommand;
 import de.leetgeeks.jgl.leapx.game.level.Level;
+import de.leetgeeks.jgl.leapx.game.level.VisualHandicap;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.physx.PhysxBody;
@@ -12,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * Lwjgl
@@ -41,7 +43,9 @@ public class SimpleEvadeComputer implements LevelStateComputer {
     public void update(GameDuration duration) {
         if (lastEvadeEvent == null || lastEvadeEvent.plus(10).isOlderThan(duration)) {
             log.debug("Start evade at {}", duration);
-            final List<PhysxBody<Obstacle>> obstacles = level.getObstaclePhysx();
+            final List<PhysxBody<Obstacle>> obstacles = level.getObstaclePhysx().stream()
+                    .filter(obstaclePhysxBody -> !obstaclePhysxBody.getPayload().isEvading())
+                    .collect(Collectors.toList());
             evadeCommand.execute(obstacles.get(rand.nextInt(obstacles.size())), duration);
             lastEvadeEvent = duration;
         }
@@ -58,7 +62,8 @@ public class SimpleEvadeComputer implements LevelStateComputer {
 
             level.getPlayer().addToScore(scrore);
             obstacle.stopEvade();
-            level.deactivateVisualHandicap();
+            //level.deactivateVisualHandicap();
+            level.activateVisualHandicap(VisualHandicap.Schockwave);
         } else {
             level.getPlayer().addToScore(-500);
             level.activateRandomVisualHandycap();

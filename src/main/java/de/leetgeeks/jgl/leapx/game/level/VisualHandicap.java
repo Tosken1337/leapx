@@ -12,7 +12,7 @@ public enum VisualHandicap {
     Pixel,
     Comic,
     Schockwave,
-    None;
+    None, Twirl;
 
     private double activationTime;
 

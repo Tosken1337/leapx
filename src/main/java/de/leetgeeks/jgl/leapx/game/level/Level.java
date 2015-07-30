@@ -154,7 +154,7 @@ public class Level {
         activateVisualHandicap(valueList.get(rand.nextInt(valueList.size())));
     }
 
-    private void activateVisualHandicap(VisualHandicap handicap) {
+    public void activateVisualHandicap(VisualHandicap handicap) {
         log.info("Activating visual handicap {}", handicap);
         visualHandicap = handicap;
         visualHandicap.setActivationTime(getTime());

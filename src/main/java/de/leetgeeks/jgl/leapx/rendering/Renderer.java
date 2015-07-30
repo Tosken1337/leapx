@@ -5,6 +5,7 @@ import de.leetgeeks.jgl.gl.buffer.VertexArrayObject;
 import de.leetgeeks.jgl.gl.buffer.VertexAttribBinding;
 import de.leetgeeks.jgl.gl.buffer.VertexBufferObject;
 import de.leetgeeks.jgl.gl.camera.OrthoCamera;
+import de.leetgeeks.jgl.gl.font.HorizontalAlignment;
 import de.leetgeeks.jgl.gl.font.TrueTypeFont;
 import de.leetgeeks.jgl.gl.postprocessing.BasePostProcess;
 import de.leetgeeks.jgl.gl.postprocessing.FxUniformProvider;
@@ -79,8 +80,8 @@ public class Renderer {
             postFx = new PostProcessor();
             postFx.init();
 
-            font = new TrueTypeFont("font/kenvector_future.ttf", 28f);
-            //font = new TrueTypeFont("font/Pixel-Noir.ttf", 28f);
+            //font = new TrueTypeFont("font/kenvector_future.ttf", 28f);
+            font = new TrueTypeFont("font/computer_pixel-7.ttf", 42f);
             font.init();
         } catch (Exception e) {
             log.error("Initialization failed!", e);
@@ -280,14 +281,16 @@ public class Renderer {
         postFx.addPostProcess(fx);
         postFx.drawOnScreenWithEffects(fbo.getColorAttachment(0).get(), 0, 0, windowWidth, windowHeight);
 
-        String displayString = "Pause - Put your Hand above the leap to begin";
+
         if (gameLevel.isRunning()) {
             final GameDuration duration = gameLevel.getGameDuration();
-            displayString = duration.toString();
+            font.printOnScreen(50, 50, duration.toString(), windowWidth, windowHeight);
+        } else {
+            String displayString = "Pause - Put your Hand above the leap";
+            font.printInScreen(HorizontalAlignment.Center, 0, 500, "Kirkwood Blaster", windowWidth, windowHeight);
+            font.printInScreen(HorizontalAlignment.Center, 0, 540, displayString, windowWidth, windowHeight);
         }
-        font.printOnScreen(50, 50, displayString, windowWidth, windowHeight);
-        font.printOnScreen(1400, 50, gameLevel.getPlayer().getScoreString(), windowWidth, windowHeight);
-        //font.printOnScreen(750, 450, "kirkwood blaster", windowWidth, windowHeight);
+        font.printInScreen(HorizontalAlignment.Right, 50f, 50f, gameLevel.getPlayer().getScoreString(), windowWidth, windowHeight);
 
         GLHelper.checkAndThrow();
     }
