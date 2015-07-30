@@ -1,6 +1,8 @@
 package de.leetgeeks.jgl.leapx.game.level;
 
 import de.leetgeeks.jgl.leapx.game.mechanic.LevelStateComputer;
+import de.leetgeeks.jgl.leapx.game.mechanic.ObstacleMagnetComputer;
+import de.leetgeeks.jgl.leapx.game.mechanic.ShockwaveComputer;
 import de.leetgeeks.jgl.leapx.game.mechanic.SimpleEvadeComputer;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.GameObject;
@@ -32,7 +34,7 @@ public class Level {
 
     private final PhysxSimulation physxSimulator;
 
-    private final LevelStateComputer levelStateComputer;
+    private final List<LevelStateComputer> levelStateComputer;
 
     private final Timer levelTimer;
 
@@ -46,17 +48,21 @@ public class Level {
 
     public Level(PhysxSimulation physxSimulator) {
         obstacles = new ArrayList<>();
-        levelStateComputer = new SimpleEvadeComputer();
         levelTimer = new Timer();
         visualHandicap = VisualHandicap.None;
         this.physxSimulator = physxSimulator;
+
+        levelStateComputer = new ArrayList<>();
+        levelStateComputer.add(new SimpleEvadeComputer());
+        levelStateComputer.add(new ShockwaveComputer());
+        levelStateComputer.add(new ObstacleMagnetComputer());
     }
 
     public void init(final GameArena arena, float obstacleSize) {
         log.info("Initialize level");
         obstacles = spawnObstacles(arena, obstacleSize, 10);
         player = spawnPlayer(arena);
-        levelStateComputer.init(this, arena);
+        levelStateComputer.forEach(computer -> computer.init(Level.this, arena));
         physxSimulator.addCollisionListener(new CollisionListener());
 
         // Perform one time step to resolve collisions
@@ -90,7 +96,7 @@ public class Level {
     public void update(double elapsedTime) {
         final GameDuration levelTime = levelTimer.getTime();
         if (levelTimer.isRunning()) {
-            levelStateComputer.update(levelTime);
+            levelStateComputer.forEach(computer -> computer.update(levelTime));
             simulatePhysx(elapsedTime);
         }
 
@@ -171,7 +177,7 @@ public class Level {
                 .findFirst();
 
         if (obstacleBody.isPresent()) {
-            levelStateComputer.playerCollision(obstacle);
+            levelStateComputer.forEach(computer -> computer.playerCollision(obstacle));
         }
     }
 
@@ -270,6 +276,14 @@ public class Level {
         } else {
             return Optional.empty();
         }
+    }
+
+    public void onKey(int key, int scancode, int action, int mods) {
+        /*if (key == GLFW.GLFW_KEY_F1 && action == 1) {
+            switchVisualHandicap();
+        }*/
+
+        levelStateComputer.forEach(computer -> computer.onKey(key, scancode, action, mods));
     }
 
     /**

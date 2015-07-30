@@ -69,4 +69,9 @@ public class SimpleEvadeComputer implements LevelStateComputer {
             level.activateRandomVisualHandycap();
         }
     }
+
+    @Override
+    public void onKey(int key, int scancode, int action, int mods) {
+
+    }
 }

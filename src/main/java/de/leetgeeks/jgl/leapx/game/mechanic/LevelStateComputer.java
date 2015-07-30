@@ -16,4 +16,5 @@ public interface LevelStateComputer {
     void update(GameDuration duration);
 
     void playerCollision(Obstacle obstacle);
+    void onKey(int key, int scancode, int action, int mods);
 }
