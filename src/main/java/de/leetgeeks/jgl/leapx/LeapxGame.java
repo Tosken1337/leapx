@@ -5,7 +5,8 @@ import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.leapx.game.object.Player;
 import de.leetgeeks.jgl.leapx.input.leap.LeapInput;
-import de.leetgeeks.jgl.leapx.rendering.Renderer;
+import de.leetgeeks.jgl.leapx.rendering.GameRenderer;
+import de.leetgeeks.jgl.leapx.rendering.UIRenderer;
 import de.leetgeeks.jgl.leapx.sound.AudioEngine;
 import de.leetgeeks.jgl.math.MathHelper;
 import de.leetgeeks.jgl.physx.PhysxBody;
@@ -15,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Fixture;
 import org.joml.Vector2f;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +38,12 @@ public class LeapxGame {
     /**
      *
      */
-    private Renderer renderer;
+    private GameRenderer gameRenderer;
+
+    /**
+     *
+     */
+    private UIRenderer uiRenderer;
 
     /**
      *
@@ -72,7 +79,9 @@ public class LeapxGame {
     public void init(float arenaWidth, float arenaHeight) {
         log.debug("Initializing game using arena size of {} x {}", arenaWidth, arenaHeight);
 
-        renderer = new Renderer();
+        gameRenderer = new GameRenderer();
+
+        uiRenderer = new UIRenderer();
 
         /*audio = new AudioEngine();
         try {
@@ -103,13 +112,15 @@ public class LeapxGame {
     }
 
     public void initGlResources() {
-        renderer.init();
+        gameRenderer.init();
+        uiRenderer.init();
     }
 
     public void windowResize(int width, int height) {
         final float projectionWidth = arena.getWidth();
         final float projectionHeight = projectionWidth * ((float)height / width);
-        renderer.windowResize(width, height, projectionWidth, projectionHeight);
+        gameRenderer.windowResize(width, height, projectionWidth, projectionHeight);
+        uiRenderer.windowResize(width, height, projectionWidth, projectionHeight);
     }
 
     private void initArena(float arenaWidth, float arenaHeight) {
@@ -150,17 +161,13 @@ public class LeapxGame {
         obstacleBodys.clear();
     }
 
-
     public void loop(double elapsedMillis) {
         processInput(elapsedMillis);
 
         gameLevel.update(elapsedMillis);
 
-        drawGameObjects(elapsedMillis);
-    }
-
-    private void drawGameObjects(double elapsedMillis) {
-        renderer.onDraw(elapsedMillis, arena, gameLevel);
+        gameRenderer.onDraw(elapsedMillis, arena, gameLevel);
+        uiRenderer.onDraw(elapsedMillis, arena, gameLevel);
     }
 
     private void processInput(double elapsedMillis) {
@@ -174,6 +181,7 @@ public class LeapxGame {
             final Vector2f pointableLocationDelta = leap.getPointableLocationDelta();
             if (!pointableLocationDelta.equals(MathHelper.ZERO_VECTOR)) {
                 final Vec2 force = new Vec2(pointableLocationDelta.x * 8, pointableLocationDelta.y * 8);
+                //final Vec2 force = new Vec2(pointableLocationDelta.x, pointableLocationDelta.y);
                 gameLevel.applyForceOnPlayer(force);
             }
         } else if (gameLevel.isRunning()) {
@@ -182,6 +190,10 @@ public class LeapxGame {
     }
 
     public void onKey(int key, int scancode, int action, int mods) {
+        if (key == GLFW.GLFW_KEY_F12 && action == 1) {
+
+        }
+
         gameLevel.onKey(key, scancode, action, mods);
     }
 }

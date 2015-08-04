@@ -3,9 +3,11 @@ package de.leetgeeks.jgl.leapx.game.mechanic;
 import de.leetgeeks.jgl.leapx.game.command.EvadeCommand;
 import de.leetgeeks.jgl.leapx.game.command.ObstacleCommand;
 import de.leetgeeks.jgl.leapx.game.level.Level;
+import de.leetgeeks.jgl.leapx.game.level.LevelState;
 import de.leetgeeks.jgl.leapx.game.level.VisualHandicap;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
+import de.leetgeeks.jgl.leapx.game.object.Player;
 import de.leetgeeks.jgl.physx.PhysxBody;
 import de.leetgeeks.jgl.util.GameDuration;
 import org.apache.logging.log4j.LogManager;
@@ -21,7 +23,7 @@ import java.util.stream.Collectors;
  * Date: 19.07.2015
  * Time: 08:04
  */
-public class SimpleEvadeComputer implements LevelStateComputer {
+public class EasyGameplayComputer implements LevelStateComputer {
     private static final Logger log = LogManager.getLogger();
 
     private Level level;
@@ -42,7 +44,6 @@ public class SimpleEvadeComputer implements LevelStateComputer {
     @Override
     public void update(GameDuration duration) {
         if (lastEvadeEvent == null || lastEvadeEvent.plus(10).isOlderThan(duration)) {
-            log.debug("Start evade at {}", duration);
             final List<PhysxBody<Obstacle>> obstacles = level.getObstaclePhysx().stream()
                     .filter(obstaclePhysxBody -> !obstaclePhysxBody.getPayload().isEvading())
                     .collect(Collectors.toList());
@@ -59,14 +60,20 @@ public class SimpleEvadeComputer implements LevelStateComputer {
             final long seconds = now.minus(evadeStart).seconds();
             final int scrore = Math.max(1200 - (int)seconds * 100, 150);
             log.debug("Obstacle caught after {} seconds. Scoring {} points", seconds, scrore);
+            obstacle.stopEvade();
+            level.destroyObstacle(obstacle);
 
             level.getPlayer().addToScore(scrore);
-            obstacle.stopEvade();
-            //level.deactivateVisualHandicap();
-            level.activateVisualHandicap(VisualHandicap.Schockwave);
+            level.activateVisualHandicap(VisualHandicap.None);
         } else {
-            level.getPlayer().addToScore(-500);
-            level.activateRandomVisualHandycap();
+            final Player player = level.getPlayer();
+            player.addToScore(-500);
+            player.died();
+            if (player.isGameOver()) {
+                level.setState(LevelState.GameOver);
+            } else {
+                level.activateRandomVisualHandycap();
+            }
         }
     }
 

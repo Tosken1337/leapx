@@ -85,6 +85,33 @@ public class PhysxSimulation {
     }
 
 
+    public <T> PhysxBody<T> createKinematicRectangle(float width, float height, Vec2 position, T payload, float density, float restitution, float friction) {
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyType.KINEMATIC;
+        bodyDef.position.set(position);
+        bodyDef.fixedRotation = false;
+        bodyDef.angularDamping = 0.2f;
+
+        final PolygonShape shape = new PolygonShape();
+        shape.setAsBox(width / 2, height / 2);
+
+        Body body = world.createBody(bodyDef);
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = shape;
+        fixtureDef.density = density;
+        fixtureDef.restitution = restitution;
+        fixtureDef.friction = friction;
+        final Fixture fixture = body.createFixture(fixtureDef);
+
+        // Create wrapper body
+        PhysxBody<T> result = new PhysxBody<>();
+        result.setBody(body);
+        result.setPayload(payload);
+
+        return result;
+
+    }
+
     public <T> PhysxBody<T> createRectangle(float width, float height, Vec2 position, T payload, boolean dynamic, float density, float restitution, float friction) {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = dynamic ? BodyType.DYNAMIC : BodyType.STATIC;

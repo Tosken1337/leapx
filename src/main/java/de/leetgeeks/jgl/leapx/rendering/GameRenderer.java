@@ -5,7 +5,6 @@ import de.leetgeeks.jgl.gl.buffer.VertexArrayObject;
 import de.leetgeeks.jgl.gl.buffer.VertexAttribBinding;
 import de.leetgeeks.jgl.gl.buffer.VertexBufferObject;
 import de.leetgeeks.jgl.gl.camera.OrthoCamera;
-import de.leetgeeks.jgl.gl.font.HorizontalAlignment;
 import de.leetgeeks.jgl.gl.font.TrueTypeFont;
 import de.leetgeeks.jgl.gl.postprocessing.BasePostProcess;
 import de.leetgeeks.jgl.gl.postprocessing.FxUniformProvider;
@@ -16,11 +15,11 @@ import de.leetgeeks.jgl.gl.texture.FrameBufferObject;
 import de.leetgeeks.jgl.gl.texture.Texture;
 import de.leetgeeks.jgl.gl.texture.TextureAttributes;
 import de.leetgeeks.jgl.gl.texture.TextureCache;
+import de.leetgeeks.jgl.gl.texture.sprite.SpriteAnimation;
 import de.leetgeeks.jgl.leapx.game.level.Level;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.leapx.game.object.Player;
-import de.leetgeeks.jgl.util.GameDuration;
 import de.leetgeeks.jgl.util.ResourceUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,7 +42,7 @@ import static org.lwjgl.opengl.GL11.*;
  * Date: 11.07.2015
  * Time: 13:37
  */
-public class Renderer {
+public class GameRenderer {
     private static final Logger log = LogManager.getLogger();
 
     private int windowWidth;
@@ -61,6 +60,8 @@ public class Renderer {
     private Texture backgroundTexture2;
     private List<Texture> obstacleTextures;
     private Map<Obstacle, Texture> obstacleTextureMap = new HashMap<>();
+
+    private SpriteAnimation explosionAnim;
 
     private Matrix4f coordinateRootTranslation;
 
@@ -122,6 +123,15 @@ public class Renderer {
                 e.printStackTrace();
             }
         });
+
+        explosionAnim = SpriteAnimation.withSeparateSprites(Arrays.asList(
+                "/textures/effect/single/expl_11_0000.png",
+                "/textures/effect/single/expl_11_0001.png",
+                "/textures/effect/single/expl_11_0002.png",
+                "/textures/effect/single/expl_11_0003.png",
+                "/textures/effect/single/expl_11_0004.png",
+                "/textures/effect/single/expl_11_0005.png",
+                "/textures/effect/single/expl_11_0006.png"));
 
         GLHelper.checkAndThrow();
     }
@@ -281,16 +291,6 @@ public class Renderer {
         postFx.addPostProcess(fx);
         postFx.drawOnScreenWithEffects(fbo.getColorAttachment(0).get(), 0, 0, windowWidth, windowHeight);
 
-
-        if (gameLevel.isRunning()) {
-            final GameDuration duration = gameLevel.getGameDuration();
-            font.printOnScreen(50, 50, duration.toString(), windowWidth, windowHeight);
-        } else {
-            String displayString = "Pause - Put your Hand above the leap";
-            font.printInScreen(HorizontalAlignment.Center, 0, 500, "Kirkwood Blaster", windowWidth, windowHeight);
-            font.printInScreen(HorizontalAlignment.Center, 0, 540, displayString, windowWidth, windowHeight);
-        }
-        font.printInScreen(HorizontalAlignment.Right, 50f, 50f, gameLevel.getPlayer().getScoreString(), windowWidth, windowHeight);
 
         GLHelper.checkAndThrow();
     }

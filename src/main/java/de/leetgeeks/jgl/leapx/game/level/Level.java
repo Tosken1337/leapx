@@ -1,9 +1,9 @@
 package de.leetgeeks.jgl.leapx.game.level;
 
+import de.leetgeeks.jgl.leapx.game.mechanic.EasyGameplayComputer;
 import de.leetgeeks.jgl.leapx.game.mechanic.LevelStateComputer;
 import de.leetgeeks.jgl.leapx.game.mechanic.ObstacleMagnetComputer;
 import de.leetgeeks.jgl.leapx.game.mechanic.ShockwaveComputer;
-import de.leetgeeks.jgl.leapx.game.mechanic.SimpleEvadeComputer;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.GameObject;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
@@ -44,16 +44,19 @@ public class Level {
 
     private VisualHandicap visualHandicap;
 
+    private LevelState state;
+
     private Random rand = new Random();
 
-    public Level(PhysxSimulation physxSimulator) {
+    public Level(PhysxSimulation physx) {
         obstacles = new ArrayList<>();
         levelTimer = new Timer();
         visualHandicap = VisualHandicap.None;
-        this.physxSimulator = physxSimulator;
+        physxSimulator = physx;
+        state = LevelState.NotStarted;
 
         levelStateComputer = new ArrayList<>();
-        levelStateComputer.add(new SimpleEvadeComputer());
+        levelStateComputer.add(new EasyGameplayComputer());
         levelStateComputer.add(new ShockwaveComputer());
         levelStateComputer.add(new ObstacleMagnetComputer());
     }
@@ -76,16 +79,19 @@ public class Level {
         }
 
         log.info("Level started");
+        state = LevelState.Running;
         levelTimer.start();
     }
 
     public void pause() {
         log.debug("Pausing game");
+        state = LevelState.Paused;
         levelTimer.pause();
     }
 
     public void resume() {
         log.debug("Resuming game");
+        state = LevelState.Running;
         levelTimer.resume();
     }
 
@@ -95,7 +101,7 @@ public class Level {
 
     public void update(double elapsedTime) {
         final GameDuration levelTime = levelTimer.getTime();
-        if (levelTimer.isRunning()) {
+        if (state == LevelState.Running) {
             levelStateComputer.forEach(computer -> computer.update(levelTime));
             simulatePhysx(elapsedTime);
         }
@@ -107,6 +113,9 @@ public class Level {
         //@ TODO do not directly update the physx. let the rule engine decide if it should be applied or maybe scaled
         // to create different movement schemes or similar.
         player.getBody().applyLinearImpulse(force, player.getPosition());
+
+
+        //player.getBody().setLinearVelocity(force.mul(100));
     }
 
     public List<Obstacle> getObstacles() {
@@ -172,22 +181,26 @@ public class Level {
      */
     private void onPlayerObstacleCollision(final Obstacle obstacle) {
         log.debug("Player collides with obstacle {}", obstacle);
-        final Optional<PhysxBody<Obstacle>> obstacleBody = obstacles.stream()
-                .filter(obstaclePhysxBody -> obstaclePhysxBody.getPayload().equals(obstacle))
-                .findFirst();
+        final Optional<PhysxBody<Obstacle>> obstacleBody = getFromObstacle(obstacle);
 
         if (obstacleBody.isPresent()) {
             levelStateComputer.forEach(computer -> computer.playerCollision(obstacle));
         }
     }
 
-    /**
-     * @TODO should be threadsafe.
-     * @param obstacle
-     */
-    private void destroyObstacle(final PhysxBody<Obstacle> obstacle) {
-        physxSimulator.destroyBody(obstacle);
-        obstacles.remove(obstacle);
+    public void destroyObstacle(final Obstacle obstacle) {
+        final Optional<PhysxBody<Obstacle>> obstacleBody = getFromObstacle(obstacle);
+
+        if (obstacleBody.isPresent()) {
+            physxSimulator.destroyBody(obstacleBody.get());
+            obstacles.remove(obstacleBody.get());
+        }
+    }
+
+    private Optional<PhysxBody<Obstacle>> getFromObstacle(final Obstacle obstacle) {
+        return obstacles.stream()
+                .filter(obstaclePhysxBody -> obstaclePhysxBody.getPayload().equals(obstacle))
+                .findFirst();
     }
 
     private void updateGameObjects(double elapsedMillis) {
@@ -256,6 +269,14 @@ public class Level {
      */
     private PhysxBody<Player> spawnPlayer(GameArena arena) {
         final Player player = new Player(new Vector2f(0, 0), new Vector2f(2.5f, 2.5f), 0);
+        /*return physxSimulator.createKinematicRectangle(
+                player.getWidth(),
+                player.getHeight(),
+                new Vec2(arena.getCenterPosition().x, arena.getCenterPosition().y),
+                player,
+                0.3f, 0f, 0.3f);*/
+
+
         return physxSimulator.createRectangle(
                 player.getWidth(),
                 player.getHeight(),
@@ -284,6 +305,14 @@ public class Level {
         }*/
 
         levelStateComputer.forEach(computer -> computer.onKey(key, scancode, action, mods));
+    }
+
+    public void setState(LevelState state) {
+        this.state = state;
+    }
+
+    public LevelState getState() {
+        return state;
     }
 
     /**
