@@ -22,7 +22,7 @@ public class EvadeCommand implements ObstacleCommand {
         final float y = rand.nextFloat();
         final Vec2 evadeVector = new Vec2(x, y);
         evadeVector.normalize();
-        obstacle.getBody().setLinearVelocity(evadeVector.mul(rand.nextFloat() * 10 + 5));
+        obstacle.getBody().setLinearVelocity(evadeVector.mul(rand.nextFloat() * 15 + 8));
         obstacle.getPayload().startEvade(true, timestamp);
     }
 }

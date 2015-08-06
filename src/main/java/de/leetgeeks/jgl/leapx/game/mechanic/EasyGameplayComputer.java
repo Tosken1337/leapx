@@ -3,8 +3,8 @@ package de.leetgeeks.jgl.leapx.game.mechanic;
 import de.leetgeeks.jgl.leapx.game.command.EvadeCommand;
 import de.leetgeeks.jgl.leapx.game.command.ObstacleCommand;
 import de.leetgeeks.jgl.leapx.game.level.Level;
-import de.leetgeeks.jgl.leapx.game.level.LevelState;
 import de.leetgeeks.jgl.leapx.game.level.VisualHandicap;
+import de.leetgeeks.jgl.leapx.game.level.state.LevelState;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.leapx.game.object.Player;
@@ -43,12 +43,15 @@ public class EasyGameplayComputer implements LevelStateComputer {
 
     @Override
     public void update(GameDuration duration) {
-        if (lastEvadeEvent == null || lastEvadeEvent.plus(10).isOlderThan(duration)) {
+        if (lastEvadeEvent == null || lastEvadeEvent.plus(7).isOlderThan(duration)) {
             final List<PhysxBody<Obstacle>> obstacles = level.getObstaclePhysx().stream()
                     .filter(obstaclePhysxBody -> !obstaclePhysxBody.getPayload().isEvading())
                     .collect(Collectors.toList());
-            evadeCommand.execute(obstacles.get(rand.nextInt(obstacles.size())), duration);
-            lastEvadeEvent = duration;
+
+            if (!obstacles.isEmpty()) {
+                evadeCommand.execute(obstacles.get(rand.nextInt(obstacles.size())), duration);
+                lastEvadeEvent = duration;
+            }
         }
     }
 
@@ -65,6 +68,13 @@ public class EasyGameplayComputer implements LevelStateComputer {
 
             level.getPlayer().addToScore(scrore);
             level.activateVisualHandicap(VisualHandicap.None);
+
+            // CHeck for level complete
+            if (level.getObstacles().isEmpty()) {
+                // Bonus score on complete
+                level.getPlayer().addToScore(2000);
+                level.setState(LevelState.Completed);
+            }
         } else {
             final Player player = level.getPlayer();
             player.addToScore(-500);

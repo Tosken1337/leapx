@@ -180,7 +180,7 @@ public class LeapxGame {
 
             final Vector2f pointableLocationDelta = leap.getPointableLocationDelta();
             if (!pointableLocationDelta.equals(MathHelper.ZERO_VECTOR)) {
-                final Vec2 force = new Vec2(pointableLocationDelta.x * 8, pointableLocationDelta.y * 8);
+                final Vec2 force = new Vec2(pointableLocationDelta.x * 15, pointableLocationDelta.y * 15);
                 //final Vec2 force = new Vec2(pointableLocationDelta.x, pointableLocationDelta.y);
                 gameLevel.applyForceOnPlayer(force);
             }

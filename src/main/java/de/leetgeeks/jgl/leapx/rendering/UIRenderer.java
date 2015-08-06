@@ -169,6 +169,10 @@ public class UIRenderer {
                 fontBig.printInScreen(HorizontalAlignment.Center, 0, 500, "GameOver", windowWidth, windowHeight);
                 fontBig.printInScreen(HorizontalAlignment.Center, 0, 540, "Your score: " + gameLevel.getPlayer().getScore(), windowWidth, windowHeight);
                 break;
+            case Completed:
+                fontBig.printInScreen(HorizontalAlignment.Center, 0, 500, "Gongratiulations! Level clear", windowWidth, windowHeight);
+                fontBig.printInScreen(HorizontalAlignment.Center, 0, 540, "Your score: " + gameLevel.getPlayer().getScore(), windowWidth, windowHeight);
+                break;
         }
 
 

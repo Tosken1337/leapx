@@ -1,4 +1,4 @@
-package de.leetgeeks.jgl.leapx.game.level;
+package de.leetgeeks.jgl.leapx.game.level.state;
 
 /**
  * Lwjgl
@@ -10,5 +10,6 @@ public enum LevelState {
     NotStarted,
     Running,
     Paused,
-    GameOver
+    GameOver,
+    Completed
 }

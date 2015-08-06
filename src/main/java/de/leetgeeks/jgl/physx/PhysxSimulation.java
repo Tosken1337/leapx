@@ -36,6 +36,8 @@ public class PhysxSimulation {
     private World world;
     private List<CollisionListener> collisionListeners = new ArrayList<>();
 
+    private List<Body> bodiesToDestroy = new ArrayList<>();
+
 
     private PhysxSimulation() {
 
@@ -64,6 +66,8 @@ public class PhysxSimulation {
             }
         });
 
+        //simulator.world.setAutoClearForces(true);
+
         return simulator;
     }
 
@@ -76,7 +80,8 @@ public class PhysxSimulation {
     }
 
     public <T> void destroyBody(PhysxBody<T> body) {
-        world.destroyBody(body.getBody());
+        bodiesToDestroy.add(body.getBody());
+        //world.destroyBody(body.getBody());
     }
 
     public <T> PhysxBody<T> createRectangle(float width, float height, Vec2 position, T payload, boolean dynamic) {
@@ -164,6 +169,9 @@ public class PhysxSimulation {
     }*/
 
     public void simulate() {
+        // Destroy bodies firts
+        bodiesToDestroy.forEach(world::destroyBody);
+        bodiesToDestroy.clear();
         world.step(TIMESTEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
     }
 }

@@ -1,5 +1,7 @@
 package de.leetgeeks.jgl.leapx.game.level;
 
+import de.leetgeeks.jgl.leapx.game.level.state.LevelState;
+import de.leetgeeks.jgl.leapx.game.level.state.LevelStateMachine;
 import de.leetgeeks.jgl.leapx.game.mechanic.EasyGameplayComputer;
 import de.leetgeeks.jgl.leapx.game.mechanic.LevelStateComputer;
 import de.leetgeeks.jgl.leapx.game.mechanic.ObstacleMagnetComputer;
@@ -41,7 +43,8 @@ public class Level {
 
     private VisualHandicap visualHandicap;
 
-    private LevelState state;
+    //private LevelState state;
+    private LevelStateMachine stateMachine;
 
     private Random rand = new Random();
 
@@ -53,7 +56,7 @@ public class Level {
         levelTimer = new Timer();
         visualHandicap = VisualHandicap.None;
         physxSimulator = physx;
-        state = LevelState.NotStarted;
+        stateMachine = new LevelStateMachine(LevelState.NotStarted);
 
         levelStateComputer = new ArrayList<>();
         levelStateComputer.add(new EasyGameplayComputer());
@@ -73,25 +76,35 @@ public class Level {
     }
 
     public void start() {
+        if (isOver()) {
+            return;
+        }
+
         if (levelTimer.isRunning()) {
             log.warn("Unable to start level. Level already started");
             return;
         }
 
         log.info("Level started");
-        state = LevelState.Running;
+        stateMachine.switchState(LevelState.Running);
         levelTimer.start();
     }
 
     public void pause() {
-        log.debug("Pausing game");
-        state = LevelState.Paused;
+        if (isOver()) {
+            return;
+        }
+
+        stateMachine.switchState(LevelState.Paused);
         levelTimer.pause();
     }
 
     public void resume() {
-        log.debug("Resuming game");
-        state = LevelState.Running;
+        if (isOver()) {
+            return;
+        }
+
+        stateMachine.switchState(LevelState.Running);
         levelTimer.resume();
     }
 
@@ -101,7 +114,7 @@ public class Level {
 
     public void update(double elapsedTime) {
         final GameDuration levelTime = levelTimer.getTime();
-        if (state == LevelState.Running) {
+        if (stateMachine.getState() == LevelState.Running) {
             levelStateComputer.forEach(computer -> computer.update(levelTime));
             simulatePhysx(elapsedTime);
         }
@@ -312,11 +325,11 @@ public class Level {
     }
 
     public void setState(LevelState state) {
-        this.state = state;
+        stateMachine.switchState(state);
     }
 
     public LevelState getState() {
-        return state;
+        return stateMachine.getState();
     }
 
     public LinkedList<Collision> getCollisions() {
@@ -325,6 +338,10 @@ public class Level {
 
     public void clearCollisions() {
         collisions.clear();
+    }
+
+    public boolean isOver() {
+        return stateMachine.getState() == LevelState.GameOver || stateMachine.getState() == LevelState.Completed;
     }
 
     /**
