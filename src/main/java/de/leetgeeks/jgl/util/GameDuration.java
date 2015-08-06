@@ -54,4 +54,8 @@ public final class GameDuration {
     public long seconds() {
         return sinceStart.getSeconds();
     }
+
+    public long milliSeconds() {
+        return sinceStart.toMillis();
+    }
 }

@@ -284,12 +284,12 @@ public class GameRenderer {
 
             mat.identity();
             mat.translate(collision.getPosition().x, collision.getPosition().y, 0);
-            mat.scale(4, 4, 1);
+            mat.scale(3, 3, 1);
 
             final Matrix4f tmp = new Matrix4f(camera.getViewProjection()).mul(coordinateRootTranslation).mul(mat);
             // Add animation to list of active animations to draw
 
-            spriteSetManager.playOnce("expl_11", tmp, gameDuration);
+            spriteSetManager.playOnce("expl_04", tmp, gameDuration);
 
             /*final SpriteFrame frame = spriteAnimationSet.getFrame("expl_11", 0);
             spriteSetManager.drawSprite(frame, tmp);*/

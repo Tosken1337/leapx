@@ -87,6 +87,14 @@ public class SpriteMap {
         return instance;
     }
 
+    public int getNumberOfFrames(String animationName) {
+        if (!spriteMapIndex.containsKey(animationName)) {
+            return 0;
+        }
+
+        return spriteMapIndex.get(animationName).size();
+    }
+
     public SpriteFrame getFrame(final String animationName, final int animationFrameIndex) {
         switch (sourceMode) {
 
@@ -102,7 +110,7 @@ public class SpriteMap {
                 final float sizeTexCoordX = spriteFrame.dimension.x / ((float) spriteMap.getWidth());
                 final float sizeTexCoordY = spriteFrame.dimension.y / ((float) spriteMap.getHeight());
 
-                return new SpriteFrame(spriteMap, new Vector2f(offsetTexCoordX, offsetTexCoordY), new Vector2f(sizeTexCoordX, sizeTexCoordY));
+                return new SpriteFrame(spriteMap, new Vector2f(offsetTexCoordX, 1 - offsetTexCoordY - sizeTexCoordY), new Vector2f(sizeTexCoordX, sizeTexCoordY));
             case SeparateSprites:
                 return new SpriteFrame(null, null, null);
         }

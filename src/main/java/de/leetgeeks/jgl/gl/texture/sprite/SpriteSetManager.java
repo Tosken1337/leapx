@@ -8,6 +8,8 @@ import de.leetgeeks.jgl.gl.shader.ShaderProgram;
 import de.leetgeeks.jgl.gl.texture.Texture;
 import de.leetgeeks.jgl.util.GameDuration;
 import de.leetgeeks.jgl.util.ResourceUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector4f;
@@ -25,6 +27,9 @@ import java.util.LinkedList;
  * Time: 09:50
  */
 public class SpriteSetManager {
+    private static final Logger log = LogManager.getLogger();
+
+
     /**
      *
      */
@@ -73,11 +78,24 @@ public class SpriteSetManager {
         // draw sprite
 
         activeAnimations.forEach(spriteAnimation -> {
-            final SpriteFrame currentFrame = animationSet.getFrame(spriteAnimation.getSpriteName(), 0);
-            drawSprite(currentFrame, spriteAnimation.getViewProjection());
+            final int numFrames = animationSet.getNumberOfFrames(spriteAnimation.getSpriteName());
+            final int fps = numFrames;
+            //final int fps = numFrames / 2;
+            final GameDuration animationTime = time.minus(spriteAnimation.getStartTime());
+            final float frameTime = 1000f / fps;
+
+            final int frameNumber = (int)Math.floor(animationTime.milliSeconds() / frameTime);
+            if (frameNumber < numFrames) {
+
+                final SpriteFrame currentFrame = animationSet.getFrame(spriteAnimation.getSpriteName(), frameNumber);
+                drawSprite(currentFrame, spriteAnimation.getViewProjection());
+            } else {
+                spriteAnimation.setFinished(true);
+            }
         });
 
-        //@todo clear inactive animations from list
+        //@todo clear inactive animations from list or repeat when mode is set to repeat
+        activeAnimations.removeIf(SpriteAnimation::isFinished);
     }
 
     public void drawSprite(final SpriteFrame sprite, final Matrix4f viewProjectionMatrix) {
@@ -96,7 +114,7 @@ public class SpriteSetManager {
         final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
         viewProjectionMatrix.get(matrixBuffer);
         spriteProgram.setUniformMatrixF("viewProjMatrix", matrixBuffer);
-        spriteProgram.setUniformVector4f("offsetScale", new Vector4f(offset.x, 1 - offset.y, size.x, size.y));
+        spriteProgram.setUniformVector4f("offsetScale", new Vector4f(offset.x, offset.y, size.x, size.y));
 
         GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 6);
 
@@ -126,6 +144,7 @@ public class SpriteSetManager {
                 1f, 1f,
                 0f, 1f
         };
+
         VertexBufferObject quadPosVbo = VertexBufferObject.create(position);
         quadPosVbo.addAttribBinding(new VertexAttribBinding(VertexAttribBinding.POSITION_INDEX, 3));
 
@@ -157,10 +176,13 @@ public class SpriteSetManager {
 
         final String spriteName;
 
+        private boolean finished;
+
         public SpriteAnimation(GameDuration startTime, Matrix4f viewProjection, String spriteName) {
             this.startTime = startTime;
             this.viewProjection = viewProjection;
             this.spriteName = spriteName;
+            this.finished = false;
         }
 
         public GameDuration getStartTime() {
@@ -173,6 +195,14 @@ public class SpriteSetManager {
 
         public String getSpriteName() {
             return spriteName;
+        }
+
+        public boolean isFinished() {
+            return finished;
+        }
+
+        public void setFinished(boolean finished) {
+            this.finished = finished;
         }
     }
 }
