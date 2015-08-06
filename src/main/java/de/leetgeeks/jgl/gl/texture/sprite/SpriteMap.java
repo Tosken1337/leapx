@@ -5,7 +5,6 @@ import com.eclipsesource.json.JsonObject;
 import de.leetgeeks.jgl.gl.texture.Texture;
 import de.leetgeeks.jgl.gl.texture.TextureAttributes;
 import de.leetgeeks.jgl.gl.texture.TextureCache;
-import de.leetgeeks.jgl.util.GameDuration;
 import de.leetgeeks.jgl.util.ResourceUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,7 +21,7 @@ import java.util.regex.Pattern;
  * Date: 04.08.2015
  * Time: 07:53
  */
-public class SpriteAnimation {
+public class SpriteMap {
     private final static Logger log = LogManager.getLogger();
 
     private enum SpriteSource {
@@ -55,23 +54,13 @@ public class SpriteAnimation {
      */
     private Map<String, List<SpriteMapIndex>> spriteMapIndex;
 
-    /**
-     *
-     */
-    private boolean isRunning;
-
-    /**
-     *
-     */
-    private GameDuration startTime;
-
 
 
     /**
      *
      * @param mode
      */
-    private SpriteAnimation(SpriteSource mode) {
+    private SpriteMap(SpriteSource mode) {
         this.sourceMode = mode;
     }
 
@@ -81,8 +70,8 @@ public class SpriteAnimation {
      * @param jsonIndex
      * @return
      */
-    public static SpriteAnimation withJsonSpritemap(final String spritemap, final String jsonIndex) throws Exception {
-        final SpriteAnimation instance = new SpriteAnimation(SpriteSource.SpriteMap);
+    public static SpriteMap withJsonSpritemap(final String spritemap, final String jsonIndex) throws Exception {
+        final SpriteMap instance = new SpriteMap(SpriteSource.SpriteMap);
         instance.loadSpritemap(spritemap, jsonIndex);
         return instance;
     }
@@ -92,13 +81,13 @@ public class SpriteAnimation {
      * @param spriteTextures
      * @return
      */
-    public static SpriteAnimation withSeparateSprites(final List<String> spriteTextures) throws Exception {
-        final SpriteAnimation instance = new SpriteAnimation(SpriteSource.SeparateSprites);
+    public static SpriteMap withSeparateSprites(final List<String> spriteTextures) throws Exception {
+        final SpriteMap instance = new SpriteMap(SpriteSource.SeparateSprites);
         instance.loadSprites(spriteTextures);
         return instance;
     }
 
-    public SpriteFrame getFrame(final String animationName, final GameDuration startTime) {
+    public SpriteFrame getFrame(final String animationName, final int animationFrameIndex) {
         switch (sourceMode) {
 
             case SpriteMap:
@@ -107,8 +96,7 @@ public class SpriteAnimation {
                 }
 
                 final List<SpriteMapIndex> animationFrames = spriteMapIndex.get(animationName);
-                // @todo compute texture and coordinates based on mode and current time
-                final SpriteMapIndex spriteFrame = animationFrames.get(0);
+                final SpriteMapIndex spriteFrame = animationFrames.get(animationFrameIndex);
                 final float offsetTexCoordX = spriteFrame.offset.x / ((float) spriteMap.getWidth());
                 final float offsetTexCoordY = spriteFrame.offset.y / ((float) spriteMap.getHeight());
                 final float sizeTexCoordX = spriteFrame.dimension.x / ((float) spriteMap.getWidth());
@@ -120,10 +108,6 @@ public class SpriteAnimation {
         }
 
         return null;
-    }
-
-    public boolean isRunning() {
-        return isRunning;
     }
 
     private void loadSprites(final List<String> spriteTextures) {

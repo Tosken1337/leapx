@@ -323,6 +323,10 @@ public class Level {
         return collisions;
     }
 
+    public void clearCollisions() {
+        collisions.clear();
+    }
+
     /**
      *
      */

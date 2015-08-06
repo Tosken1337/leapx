@@ -6,6 +6,7 @@ import de.leetgeeks.jgl.gl.buffer.VertexAttribBinding;
 import de.leetgeeks.jgl.gl.buffer.VertexBufferObject;
 import de.leetgeeks.jgl.gl.shader.ShaderProgram;
 import de.leetgeeks.jgl.gl.texture.Texture;
+import de.leetgeeks.jgl.util.GameDuration;
 import de.leetgeeks.jgl.util.ResourceUtil;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -15,6 +16,7 @@ import org.lwjgl.opengl.GL11;
 
 import java.nio.FloatBuffer;
 import java.util.Arrays;
+import java.util.LinkedList;
 
 /**
  * Lwjgl
@@ -33,12 +35,25 @@ public class SpriteSetManager {
      */
     private ShaderProgram spriteProgram;
 
+    /**
+     * @TODO make it possible to maintain multiple sets
+     */
+    private SpriteMap animationSet;
+
+    private LinkedList<SpriteAnimation> activeAnimations;
+
 
     public SpriteSetManager() {
+        activeAnimations = new LinkedList<>();
     }
 
-    public void playOnce(final String spriteName, final Matrix4f viewProjectionMatrix) {
+    public void setSpriteAnimationSet(final SpriteMap spriteAnimation) {
+        this.animationSet = spriteAnimation;
+    }
 
+    public void playOnce(final String spriteName, final Matrix4f viewProjectionMatrix, final GameDuration time) {
+        final SpriteAnimation anim = new SpriteAnimation(time, viewProjectionMatrix, spriteName);
+        activeAnimations.add(anim);
     }
 
     public void play(final String spriteName, final Matrix4f viewProjectionMatrix) {
@@ -47,6 +62,22 @@ public class SpriteSetManager {
 
     public void stop(final String spriteName) {
 
+    }
+
+    /**
+     * Called each frame to perform drawing of aniomations in the current animation list.
+     * A animation can be started by calling #play or #playOnce.
+     */
+    public void draw(final GameDuration time) {
+        // foreach in the list get current frame of animation and
+        // draw sprite
+
+        activeAnimations.forEach(spriteAnimation -> {
+            final SpriteFrame currentFrame = animationSet.getFrame(spriteAnimation.getSpriteName(), 0);
+            drawSprite(currentFrame, spriteAnimation.getViewProjection());
+        });
+
+        //@todo clear inactive animations from list
     }
 
     public void drawSprite(final SpriteFrame sprite, final Matrix4f viewProjectionMatrix) {
@@ -114,5 +145,34 @@ public class SpriteSetManager {
         }
 
         GLHelper.checkAndThrow();
+    }
+
+    /**
+     *
+     */
+    private static class SpriteAnimation {
+        final private GameDuration startTime;
+
+        final private Matrix4f viewProjection;
+
+        final String spriteName;
+
+        public SpriteAnimation(GameDuration startTime, Matrix4f viewProjection, String spriteName) {
+            this.startTime = startTime;
+            this.viewProjection = viewProjection;
+            this.spriteName = spriteName;
+        }
+
+        public GameDuration getStartTime() {
+            return startTime;
+        }
+
+        public Matrix4f getViewProjection() {
+            return viewProjection;
+        }
+
+        public String getSpriteName() {
+            return spriteName;
+        }
     }
 }

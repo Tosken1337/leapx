@@ -15,14 +15,14 @@ import de.leetgeeks.jgl.gl.texture.FrameBufferObject;
 import de.leetgeeks.jgl.gl.texture.Texture;
 import de.leetgeeks.jgl.gl.texture.TextureAttributes;
 import de.leetgeeks.jgl.gl.texture.TextureCache;
-import de.leetgeeks.jgl.gl.texture.sprite.SpriteAnimation;
-import de.leetgeeks.jgl.gl.texture.sprite.SpriteFrame;
+import de.leetgeeks.jgl.gl.texture.sprite.SpriteMap;
 import de.leetgeeks.jgl.gl.texture.sprite.SpriteSetManager;
 import de.leetgeeks.jgl.leapx.game.level.Level;
 import de.leetgeeks.jgl.leapx.game.object.Collision;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.leapx.game.object.Player;
+import de.leetgeeks.jgl.util.GameDuration;
 import de.leetgeeks.jgl.util.ResourceUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,7 +64,6 @@ public class GameRenderer {
     private List<Texture> obstacleTextures;
     private Map<Obstacle, Texture> obstacleTextureMap = new HashMap<>();
 
-    private SpriteAnimation spriteAnimationSet;
     private SpriteSetManager spriteSetManager;
 
     private Matrix4f coordinateRootTranslation;
@@ -128,9 +127,10 @@ public class GameRenderer {
             }
         });
 
-        spriteAnimationSet = SpriteAnimation.withJsonSpritemap("/textures/effect/explosions.png", "/textures/effect/explosions.json");
+        final SpriteMap spriteAnimationSet = SpriteMap.withJsonSpritemap("/textures/effect/explosions.png", "/textures/effect/explosions.json");
         spriteSetManager = new SpriteSetManager();
         spriteSetManager.initResources();
+        spriteSetManager.setSpriteAnimationSet(spriteAnimationSet);
 
         GLHelper.checkAndThrow();
     }
@@ -274,12 +274,11 @@ public class GameRenderer {
     }
 
     private void drawEffects(Level level) {
+        final GameDuration gameDuration = level.getGameDuration();
 
         final LinkedList<Collision> collisions = level.getCollisions();
 
-        //@ todo add only new collisions to loca sprite animation and then draw all active effects of the sprite manager
         collisions.forEach(collision -> {
-            // Draw sprites
             final Matrix4f mat = new Matrix4f();
             final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
@@ -287,12 +286,20 @@ public class GameRenderer {
             mat.translate(collision.getPosition().x, collision.getPosition().y, 0);
             mat.scale(4, 4, 1);
 
-            Matrix4f tmp = new Matrix4f(camera.getViewProjection()).mul(coordinateRootTranslation).mul(mat);
+            final Matrix4f tmp = new Matrix4f(camera.getViewProjection()).mul(coordinateRootTranslation).mul(mat);
+            // Add animation to list of active animations to draw
 
-            final SpriteFrame frame = spriteAnimationSet.getFrame("expl_11", level.getGameDuration());
-            spriteSetManager.drawSprite(frame, tmp);
+            spriteSetManager.playOnce("expl_11", tmp, gameDuration);
+
+            /*final SpriteFrame frame = spriteAnimationSet.getFrame("expl_11", 0);
+            spriteSetManager.drawSprite(frame, tmp);*/
         });
 
+        // Clear collision because we have processed them. @TODO not very sexy code to clear the list here.
+        level.clearCollisions();
+
+        // Here the drawing of the active sprite animation takes place
+        spriteSetManager.draw(gameDuration);
 
     }
 
