@@ -1,18 +1,20 @@
 package de.leetgeeks.jgl.gl.texture.sprite;
 
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonObject;
 import de.leetgeeks.jgl.gl.texture.Texture;
 import de.leetgeeks.jgl.gl.texture.TextureAttributes;
 import de.leetgeeks.jgl.gl.texture.TextureCache;
 import de.leetgeeks.jgl.util.GameDuration;
+import de.leetgeeks.jgl.util.ResourceUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.Vector2f;
 import org.lwjgl.opengl.GL11;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Lwjgl
@@ -49,9 +51,9 @@ public class SpriteAnimation {
     private Texture spriteMap;
 
     /**
-     * Each single sprite frame within the map indexed by it's name
+     * Each single sprite animation mapped to it's single frames
      */
-    private Map<String, SpriteMapIndex> spriteMapIndex;
+    private Map<String, List<SpriteMapIndex>> spriteMapIndex;
 
     /**
      *
@@ -79,7 +81,7 @@ public class SpriteAnimation {
      * @param jsonIndex
      * @return
      */
-    public static SpriteAnimation withJsonSpritemap(final File spritemap, final File jsonIndex) throws Exception {
+    public static SpriteAnimation withJsonSpritemap(final String spritemap, final String jsonIndex) throws Exception {
         final SpriteAnimation instance = new SpriteAnimation(SpriteSource.SpriteMap);
         instance.loadSpritemap(spritemap, jsonIndex);
         return instance;
@@ -96,9 +98,28 @@ public class SpriteAnimation {
         return instance;
     }
 
-    public SpriteFrame getFrame(final GameDuration startTime) {
-        // @todo compute texture and coordinates based on mode and current time
-        return new SpriteFrame(null, null);
+    public SpriteFrame getFrame(final String animationName, final GameDuration startTime) {
+        switch (sourceMode) {
+
+            case SpriteMap:
+                if (!spriteMapIndex.containsKey(animationName)) {
+                    throw new IllegalArgumentException("Unknwon sprite animation: " + animationName);
+                }
+
+                final List<SpriteMapIndex> animationFrames = spriteMapIndex.get(animationName);
+                // @todo compute texture and coordinates based on mode and current time
+                final SpriteMapIndex spriteFrame = animationFrames.get(0);
+                final float offsetTexCoordX = spriteFrame.offset.x / ((float) spriteMap.getWidth());
+                final float offsetTexCoordY = spriteFrame.offset.y / ((float) spriteMap.getHeight());
+                final float sizeTexCoordX = spriteFrame.dimension.x / ((float) spriteMap.getWidth());
+                final float sizeTexCoordY = spriteFrame.dimension.y / ((float) spriteMap.getHeight());
+
+                return new SpriteFrame(spriteMap, new Vector2f(offsetTexCoordX, offsetTexCoordY), new Vector2f(sizeTexCoordX, sizeTexCoordY));
+            case SeparateSprites:
+                return new SpriteFrame(null, null, null);
+        }
+
+        return null;
     }
 
     public boolean isRunning() {
@@ -118,8 +139,78 @@ public class SpriteAnimation {
                 });
     }
 
-    private void loadSpritemap(final File spritemap, final File jsonIndex) {
+    /**
+     * <pre>
+     *     {
+     *      "frames": {
 
+                         "bullet_2_0.png":
+                         {
+                         "frame": {"x":210,"y":566,"w":10,"h":26},
+                         "rotated": false,
+                         "trimmed": false,
+                         "spriteSourceSize": {"x":0,"y":0,"w":10,"h":26},
+                         "sourceSize": {"w":10,"h":26}
+                         },
+                         "bullet_2_1.png":
+                         {
+                         "frame": {"x":198,"y":566,"w":10,"h":26},
+                         "rotated": false,
+                         "trimmed": false,
+                         "spriteSourceSize": {"x":0,"y":0,"w":10,"h":26},
+                         "sourceSize": {"w":10,"h":26}
+                         }
+                    }
+            }
+     * </pre>
+     * @param spritemap
+     * @param jsonIndex
+     * @throws Exception
+     */
+    private void loadSpritemap(final String spritemap, final String jsonIndex) throws Exception {
+        // Load sprite map texture
+        spriteMap = textureCache.get(spritemap, new TextureAttributes(GL11.GL_LINEAR, GL11.GL_CLAMP));
+
+        // Load json index
+        String jsonString = ResourceUtil.getResourceFileAsString(jsonIndex, this.getClass());
+        final JsonObject frames = Json.parse(jsonString).asObject().get("frames").asObject();
+
+        final Pattern frameNamePattern = Pattern.compile("(\\w+?)_(\\d{4}?).png");
+
+        spriteMapIndex = new HashMap<>();
+        frames.forEach(member -> {
+            final JsonObject sprite = member.getValue().asObject();
+            final JsonObject frame = sprite.get("frame").asObject();
+            final int x = frame.getInt("x", 0);
+            final int y = frame.getInt("y", 0);
+            final int w = frame.getInt("w", 0);
+            final int h = frame.getInt("h", 0);
+
+            final String frameName = member.getName();
+
+            // Check name represents an animation sprite like ..._0001.png
+            final Matcher matcher = frameNamePattern.matcher(frameName);
+            if (matcher.find()) {
+                final String animationGroupName = matcher.group(1);
+                final int animationFrameIndex = Integer.parseInt(matcher.group(2));
+
+                final SpriteMapIndex index = new SpriteMapIndex(frameName, new Vector2f(w, h), new Vector2f(x, y), animationFrameIndex);
+                if (spriteMapIndex.containsKey(animationGroupName)) {
+                    spriteMapIndex.get(animationGroupName).add(index);
+                } else {
+                    final List<SpriteMapIndex> list = new ArrayList<>();
+                    list.add(index);
+                    spriteMapIndex.put(animationGroupName, list);
+                }
+            }
+        });
+
+        // Sort frames of each animation
+        spriteMapIndex.entrySet().forEach(entry -> {
+            final String animationName = entry.getKey();
+            final List<SpriteMapIndex> animationFrames = entry.getValue();
+            animationFrames.sort(Comparator.comparingInt(SpriteMapIndex::getAnimationIndex));
+        });
     }
 
     /**
@@ -130,11 +221,17 @@ public class SpriteAnimation {
         String name;
         Vector2f dimension;
         Vector2f offset;
+        int animationIndex;
 
-        public SpriteMapIndex(String name, Vector2f dimension, Vector2f offset) {
+        public SpriteMapIndex(String name, Vector2f dimension, Vector2f offset, int animationIndex) {
             this.name = name;
             this.dimension = dimension;
             this.offset = offset;
+            this.animationIndex = animationIndex;
+        }
+
+        public int getAnimationIndex() {
+            return animationIndex;
         }
     }
 

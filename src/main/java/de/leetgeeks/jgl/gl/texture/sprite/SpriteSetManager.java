@@ -5,9 +5,15 @@ import de.leetgeeks.jgl.gl.buffer.VertexArrayObject;
 import de.leetgeeks.jgl.gl.buffer.VertexAttribBinding;
 import de.leetgeeks.jgl.gl.buffer.VertexBufferObject;
 import de.leetgeeks.jgl.gl.shader.ShaderProgram;
+import de.leetgeeks.jgl.gl.texture.Texture;
 import de.leetgeeks.jgl.util.ResourceUtil;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
+import org.joml.Vector4f;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
 
+import java.nio.FloatBuffer;
 import java.util.Arrays;
 
 /**
@@ -43,15 +49,41 @@ public class SpriteSetManager {
 
     }
 
-    private void initResources() throws Exception {
-        float[] position = {
-                -1f, 1f, 0f,
-                -1f, -1f, 0f,
-                1f, -1f, 0f,
+    public void drawSprite(final SpriteFrame sprite, final Matrix4f viewProjectionMatrix) {
+        final Texture spriteTexture = sprite.getTexture();
+        final Vector2f offset = sprite.getTexCoordOffset();
+        final Vector2f size = sprite.getTexCoordSize();
 
-                1f, -1f, 0f,
-                1f, 1f, 0f,
-                -1f, 1f, 0f
+        GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+
+        spriteQuad.bind();
+
+        spriteTexture.bind(0);
+        spriteProgram.use();
+
+        final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
+        viewProjectionMatrix.get(matrixBuffer);
+        spriteProgram.setUniformMatrixF("viewProjMatrix", matrixBuffer);
+        spriteProgram.setUniformVector4f("offsetScale", new Vector4f(offset.x, 1 - offset.y, size.x, size.y));
+
+        GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 6);
+
+        spriteTexture.unbind();
+        spriteQuad.unbind();
+
+        GL11.glPopAttrib();
+    }
+
+    public void initResources() throws Exception {
+        float[] position = {
+                -.5f, .5f, 0f,
+                -.5f, -.5f, 0f,
+                .5f, -.5f, 0f,
+
+                .5f, -.5f, 0f,
+                .5f, .5f, 0f,
+                -.5f, .5f, 0f
         };
 
         float[] texCoord = {

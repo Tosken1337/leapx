@@ -16,7 +16,10 @@ import de.leetgeeks.jgl.gl.texture.Texture;
 import de.leetgeeks.jgl.gl.texture.TextureAttributes;
 import de.leetgeeks.jgl.gl.texture.TextureCache;
 import de.leetgeeks.jgl.gl.texture.sprite.SpriteAnimation;
+import de.leetgeeks.jgl.gl.texture.sprite.SpriteFrame;
+import de.leetgeeks.jgl.gl.texture.sprite.SpriteSetManager;
 import de.leetgeeks.jgl.leapx.game.level.Level;
+import de.leetgeeks.jgl.leapx.game.object.Collision;
 import de.leetgeeks.jgl.leapx.game.object.GameArena;
 import de.leetgeeks.jgl.leapx.game.object.Obstacle;
 import de.leetgeeks.jgl.leapx.game.object.Player;
@@ -61,7 +64,8 @@ public class GameRenderer {
     private List<Texture> obstacleTextures;
     private Map<Obstacle, Texture> obstacleTextureMap = new HashMap<>();
 
-    private SpriteAnimation explosionAnim;
+    private SpriteAnimation spriteAnimationSet;
+    private SpriteSetManager spriteSetManager;
 
     private Matrix4f coordinateRootTranslation;
 
@@ -124,14 +128,9 @@ public class GameRenderer {
             }
         });
 
-        explosionAnim = SpriteAnimation.withSeparateSprites(Arrays.asList(
-                "/textures/effect/single/expl_11_0000.png",
-                "/textures/effect/single/expl_11_0001.png",
-                "/textures/effect/single/expl_11_0002.png",
-                "/textures/effect/single/expl_11_0003.png",
-                "/textures/effect/single/expl_11_0004.png",
-                "/textures/effect/single/expl_11_0005.png",
-                "/textures/effect/single/expl_11_0006.png"));
+        spriteAnimationSet = SpriteAnimation.withJsonSpritemap("/textures/effect/explosions.png", "/textures/effect/explosions.json");
+        spriteSetManager = new SpriteSetManager();
+        spriteSetManager.initResources();
 
         GLHelper.checkAndThrow();
     }
@@ -274,6 +273,29 @@ public class GameRenderer {
         playerTexture.unbind();
     }
 
+    private void drawEffects(Level level) {
+
+        final LinkedList<Collision> collisions = level.getCollisions();
+
+        //@ todo add only new collisions to loca sprite animation and then draw all active effects of the sprite manager
+        collisions.forEach(collision -> {
+            // Draw sprites
+            final Matrix4f mat = new Matrix4f();
+            final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
+
+            mat.identity();
+            mat.translate(collision.getPosition().x, collision.getPosition().y, 0);
+            mat.scale(4, 4, 1);
+
+            Matrix4f tmp = new Matrix4f(camera.getViewProjection()).mul(coordinateRootTranslation).mul(mat);
+
+            final SpriteFrame frame = spriteAnimationSet.getFrame("expl_11", level.getGameDuration());
+            spriteSetManager.drawSprite(frame, tmp);
+        });
+
+
+    }
+
     public void onDraw(double elapsedMillis, GameArena arena, Level gameLevel) {
         fbo.bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -283,6 +305,9 @@ public class GameRenderer {
         drawObstacles(gameLevel.getObstacles(), elapsedMillis);
         drawPlayer(gameLevel.getPlayer(), elapsedMillis);
         quadVao.unbind();
+
+        drawEffects(gameLevel);
+
 
         fbo.unbind();
 

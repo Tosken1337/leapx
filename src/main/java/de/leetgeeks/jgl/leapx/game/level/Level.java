@@ -4,10 +4,7 @@ import de.leetgeeks.jgl.leapx.game.mechanic.EasyGameplayComputer;
 import de.leetgeeks.jgl.leapx.game.mechanic.LevelStateComputer;
 import de.leetgeeks.jgl.leapx.game.mechanic.ObstacleMagnetComputer;
 import de.leetgeeks.jgl.leapx.game.mechanic.ShockwaveComputer;
-import de.leetgeeks.jgl.leapx.game.object.GameArena;
-import de.leetgeeks.jgl.leapx.game.object.GameObject;
-import de.leetgeeks.jgl.leapx.game.object.Obstacle;
-import de.leetgeeks.jgl.leapx.game.object.Player;
+import de.leetgeeks.jgl.leapx.game.object.*;
 import de.leetgeeks.jgl.physx.PhysxBody;
 import de.leetgeeks.jgl.physx.PhysxSimulation;
 import de.leetgeeks.jgl.util.GameDuration;
@@ -48,8 +45,11 @@ public class Level {
 
     private Random rand = new Random();
 
+    private LinkedList<Collision> collisions;
+
     public Level(PhysxSimulation physx) {
         obstacles = new ArrayList<>();
+        collisions = new LinkedList<>();
         levelTimer = new Timer();
         visualHandicap = VisualHandicap.None;
         physxSimulator = physx;
@@ -170,7 +170,7 @@ public class Level {
     }
 
     public void activateVisualHandicap(VisualHandicap handicap) {
-        log.info("Activating visual handicap {}", handicap);
+        log.debug("Activating visual handicap {}", handicap);
         visualHandicap = handicap;
         visualHandicap.setActivationTime(getTime());
     }
@@ -180,7 +180,7 @@ public class Level {
      * @param obstacle  The obstacle which has collided with the player.
      */
     private void onPlayerObstacleCollision(final Obstacle obstacle) {
-        log.debug("Player collides with obstacle {}", obstacle);
+        log.trace("Player collides with obstacle {}", obstacle);
         final Optional<PhysxBody<Obstacle>> obstacleBody = getFromObstacle(obstacle);
 
         if (obstacleBody.isPresent()) {
@@ -194,6 +194,10 @@ public class Level {
         if (obstacleBody.isPresent()) {
             physxSimulator.destroyBody(obstacleBody.get());
             obstacles.remove(obstacleBody.get());
+
+            // Add collision point to list.
+            final Collision collision = new Collision(Collision.Type.PlayerObstacle, obstacle.getCenterPosition(), getGameDuration());
+            collisions.add(collision);
         }
     }
 
@@ -313,6 +317,10 @@ public class Level {
 
     public LevelState getState() {
         return state;
+    }
+
+    public LinkedList<Collision> getCollisions() {
+        return collisions;
     }
 
     /**

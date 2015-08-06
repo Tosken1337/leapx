@@ -4,6 +4,7 @@ import de.leetgeeks.jgl.gl.GLHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.Vector2f;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL32;
@@ -70,6 +71,13 @@ public final class ShaderProgram {
         int location = uniformLocations.computeIfAbsent(uniformName, s -> glGetUniformLocation(id, s));
         if (location > -1) {
             glUniform2f(location, vec.x, vec.y);
+        }
+    }
+
+    public void setUniformVector4f(final String uniformName, Vector4f vec) {
+        int location = uniformLocations.computeIfAbsent(uniformName, s -> glGetUniformLocation(id, s));
+        if (location > -1) {
+            glUniform4f(location, vec.x, vec.y, vec.z, vec.w);
         }
     }
 

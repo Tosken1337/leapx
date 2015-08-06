@@ -11,18 +11,24 @@ import org.joml.Vector2f;
  */
 public final class SpriteFrame {
     private final Texture texture;
-    private final Vector2f texCoordOffsetScale;
+    private final Vector2f texCoordOffset;
+    private final Vector2f texCoordSize;
 
-    public SpriteFrame(Texture texture, Vector2f texCoordOffsetScale) {
+    public SpriteFrame(Texture texture, Vector2f texCoordOffset, Vector2f texCoordSize) {
         this.texture = texture;
-        this.texCoordOffsetScale = texCoordOffsetScale;
+        this.texCoordOffset = texCoordOffset;
+        this.texCoordSize = texCoordSize;
     }
 
     public Texture getTexture() {
         return texture;
     }
 
-    public Vector2f getTexCoordOffsetScale() {
-        return texCoordOffsetScale;
+    public Vector2f getTexCoordOffset() {
+        return texCoordOffset;
+    }
+
+    public Vector2f getTexCoordSize() {
+        return texCoordSize;
     }
 }
